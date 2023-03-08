@@ -1,4 +1,4 @@
-import TripInfoView from '../view/trip-info.js';
+import TripInfoView from '../view/trip-info-view.js';
 import MenuNavgationView from '../view/menu-navigation-view.js';
 import FilterView from '../view/filter-view.js';
 import { render, RenderPosition } from '../render.js';
