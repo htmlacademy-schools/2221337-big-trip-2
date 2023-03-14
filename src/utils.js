@@ -23,4 +23,6 @@ const shuffle = (array) => {
   return array;
 };
 
-export {getRandomIntInclusively, uppperFirstSymbol, TYPES, shuffle};
+const isEscapePushed = (evt) => evt.key === 'Escape';
+
+export {getRandomIntInclusively, uppperFirstSymbol, TYPES, shuffle, isEscapePushed};

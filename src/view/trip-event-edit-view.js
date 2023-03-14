@@ -109,23 +109,31 @@ const createTripEventEditTemplate = (tripEvent) => {
 };
 
 export default class TripEventEditView{
+  #element;
+  #tripEvent;
+
   constructor(tripEvent) {
-    this.tripEvent = tripEvent;
+    this.#element = null;
+    this.#tripEvent = tripEvent;
   }
 
-  getTemplate() {
-    return createTripEventEditTemplate(this.tripEvent);
+  get tripEvent() {
+    return this.#tripEvent;
   }
 
-  getElement() {
-    if(!this.element){
-      this.element = createElement(this.getTemplate());
+  get template() {
+    return createTripEventEditTemplate(this.#tripEvent);
+  }
+
+  get element() {
+    if(!this.#element){
+      this.#element = createElement(this.template);
     }
 
-    return this.element;
+    return this.#element;
   }
 
   removeElement() {
-    this.element = null;
+    this.#element = null;
   }
 }
