@@ -7,10 +7,10 @@ const createMenuNavigationTemplate = () => (
   </nav>`
 );
 
-export default class MenuNavgationView{
+export default class MenuNavgationView {
   #element;
 
-  constructor(){
+  constructor() {
     this.#element = null;
   }
 
@@ -19,7 +19,7 @@ export default class MenuNavgationView{
   }
 
   get element() {
-    if(!this.#element){
+    if(!this.#element) {
       this.#element = createElement(this.template);
     }
 

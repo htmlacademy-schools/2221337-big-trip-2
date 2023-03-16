@@ -51,12 +51,12 @@ export default class TripEventOffer {
     this.#offersByType = offersByType;
   }
 
-  get template(){
+  get template() {
     return createTripEventOffersTemplate(this.#tripEvent, this.#offersByType);
   }
 
   get element() {
-    if(!this.#element){
+    if(!this.#element) {
       this.#element = createElement(this.template);
     }
 

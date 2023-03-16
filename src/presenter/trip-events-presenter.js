@@ -1,25 +1,22 @@
 import SortView from '../view/sort-view.js';
 import TripEventsListView from '../view/trip-events-list-view.js';
 import TripEventView from '../view/trip-event-view.js';
-import TripEventAddView from '../view/trip-event-add-view.js';
 import TripEventEditView from '../view/trip-event-edit-view.js';
 import TripEventOffer from '../view/trip-event-offers-view.js';
 import TripEventDestination from '../view/trip-event-destionation-view.js';
 import { render } from '../render.js';
-import { isEscapePushed } from '../utils.js';
+import { isEscapePushed, PointMode } from '../utils.js';
 
-const MIN_TRIP_EVENT_INDEX = 2;
-
-export default class TripEventsPresenter{
+export default class TripEventsPresenter {
   #tripEventsModel;
   #tripEvents;
   #offersModel;
   #offersByType;
   #tripEventsComponent;
   #tripEventsList;
-  #newTripEvent;
+  #eventsForms;
 
-  constructor(tripEventsComponent, tripEventsModel, offersModel){
+  constructor(tripEventsComponent, tripEventsModel, offersModel) {
     this.#tripEventsModel = tripEventsModel;
     this.#tripEvents = [...this.#tripEventsModel.tripEvents];
 
@@ -29,13 +26,16 @@ export default class TripEventsPresenter{
     this.#tripEventsComponent = tripEventsComponent;
     this.#tripEventsList = new TripEventsListView();
 
-    this.#newTripEvent = new TripEventAddView(this.#tripEvents[0]);
+    this.#eventsForms = new Map();
   }
 
-  #renderTripEventForm(editForm){
-    render(editForm, this.#tripEventsList.element);
-    render(new TripEventOffer(editForm.tripEvent, this.#offersByType), editForm.element.querySelector('.event__details'));
-    render(new TripEventDestination(editForm.tripEvent), editForm.element.querySelector('.event__details'));
+  init() {
+    render(new SortView(), this.#tripEventsComponent);
+    render(this.#tripEventsList, this.#tripEventsComponent);
+
+    for(let i = 0; i < this.#tripEvents.length; i++) {
+      this.#renderTripEvent(this.#tripEvents[i]);
+    }
   }
 
   #renderTripEvent(tripEvent) {
@@ -46,28 +46,45 @@ export default class TripEventsPresenter{
     const offersComponent = new TripEventOffer(tripEventEditForm.tripEvent, this.#offersByType);
     const destination = new TripEventDestination(tripEventEditForm.tripEvent);
 
-    eventDetailsComponent.appendChild(offersComponent.element);
-    eventDetailsComponent.appendChild(destination.element);
+    render(offersComponent, eventDetailsComponent);
+    render(destination, eventDetailsComponent);
 
     const replaceEventListChildren = (newChild, oldChild) => {
       this.#tripEventsList.element.replaceChild(newChild, oldChild);
     };
 
     const onEscapeKeyDown = (evt) => {
-      if(isEscapePushed(evt)){
+      if(isEscapePushed(evt)) {
         evt.preventDefault();
-        replaceEventListChildren(newEvent.element, tripEventEditForm.element);
+        if(newEvent.pointMode === PointMode.EDITING) {
+          replaceEventListChildren(newEvent.element, tripEventEditForm.element);
+        }
+        newEvent.pointMode = PointMode.DEFAULT;
         document.removeEventListener('keydown', onEscapeKeyDown);
       }
     };
 
+    const closeAllForms = () => {
+      for (const [point, eventForm] of this.#eventsForms){
+        if(point.pointMode === PointMode.EDITING){
+          point.pointMode = PointMode.DEFAULT;
+          replaceEventListChildren(point.element, eventForm.element);
+        }
+      }
+    };
+
     const onFormOpenButtonClick = () => {
+      closeAllForms();
+      newEvent.pointMode = PointMode.EDITING;
       replaceEventListChildren(tripEventEditForm.element, newEvent.element);
       document.addEventListener('keydown', onEscapeKeyDown);
     };
 
     const onFormCloseButtonClick = () => {
-      replaceEventListChildren(newEvent.element, tripEventEditForm.element);
+      if(newEvent.pointMode === PointMode.EDITING) {
+        replaceEventListChildren(newEvent.element, tripEventEditForm.element);
+      }
+      newEvent.pointMode = PointMode.DEFAULT;
       document.removeEventListener('keydown', onEscapeKeyDown);
     };
 
@@ -78,21 +95,12 @@ export default class TripEventsPresenter{
 
     newEvent.element.querySelector('.event__rollup-btn').addEventListener('click', onFormOpenButtonClick);
 
-    tripEventEditForm.element.addEventListener('submit', onEditFormSubmit);
+    tripEventEditForm.element.querySelector('form').addEventListener('submit', onEditFormSubmit);
 
     tripEventEditForm.element.querySelector('.event__rollup-btn').addEventListener('click', onFormCloseButtonClick);
 
+    this.#eventsForms.set(newEvent, tripEventEditForm);
+
     render(newEvent, this.#tripEventsList.element);
-  }
-
-  init(){
-    render(new SortView(), this.#tripEventsComponent);
-    render(this.#tripEventsList, this.#tripEventsComponent);
-
-    this.#renderTripEventForm(this.#newTripEvent);
-
-    for(let i = MIN_TRIP_EVENT_INDEX; i < this.#tripEvents.length; i++){
-      this.#renderTripEvent(this.#tripEvents[i]);
-    }
   }
 }

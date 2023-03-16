@@ -1,5 +1,10 @@
 const TYPES = ['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant'];
 
+const PointMode = {
+  DEFAULT: 'DEFAULT',
+  EDITING: 'EDITING',
+};
+
 const getRandomIntInclusively = (min, max) => {
   min = Math.ceil(min);
   max = Math.floor(max);
@@ -25,4 +30,4 @@ const shuffle = (array) => {
 
 const isEscapePushed = (evt) => evt.key === 'Escape';
 
-export {getRandomIntInclusively, uppperFirstSymbol, TYPES, shuffle, isEscapePushed};
+export {getRandomIntInclusively, uppperFirstSymbol, TYPES, shuffle, isEscapePushed, PointMode};

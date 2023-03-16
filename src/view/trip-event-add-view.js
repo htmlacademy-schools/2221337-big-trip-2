@@ -107,7 +107,7 @@ const createTripEventAddTemplate = (tripEvent) => {
   );
 };
 
-export default class TripEventAddView{
+export default class TripEventAddView {
   #element;
   #tripEvent;
 
@@ -125,7 +125,7 @@ export default class TripEventAddView{
   }
 
   get element() {
-    if(!this.#element){
+    if(!this.#element) {
       this.#element = createElement(this.template);
     }
 

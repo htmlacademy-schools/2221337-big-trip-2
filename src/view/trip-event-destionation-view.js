@@ -21,7 +21,7 @@ const createTripEventDestinationsTemplate = (tripEvent) => {
   return '<section class="event__section  event__section--destination"></section>';
 };
 
-export default class TripEventDestination{
+export default class TripEventDestination {
   #element;
   #tripEvent;
 
@@ -35,7 +35,7 @@ export default class TripEventDestination{
   }
 
   get element() {
-    if(!this.#element){
+    if(!this.#element) {
       this.#element = createElement(this.template);
     }
 

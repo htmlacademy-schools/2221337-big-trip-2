@@ -13,7 +13,7 @@ const OFFERS_TITLES = [
   'Add drinks'
 ];
 
-export default class OfferByTypeModel{
+export default class OfferByTypeModel {
   #offers;
   #offersByType;
 

@@ -21,10 +21,10 @@ const createFilterTemplate = () => (
   </form>`
 );
 
-export default class FilterView{
+export default class FilterView {
   #element;
 
-  constructor(){
+  constructor() {
     this.#element = null;
   }
 
@@ -33,7 +33,7 @@ export default class FilterView{
   }
 
   get element() {
-    if(!this.#element){
+    if(!this.#element) {
       this.#element = createElement(this.template);
     }
 
