@@ -21,24 +21,28 @@ const createTripEventDestinationsTemplate = (tripEvent) => {
   return '<section class="event__section  event__section--destination"></section>';
 };
 
-export default class TripEventDestination{
+export default class TripEventDestination {
+  #element;
+  #tripEvent;
+
   constructor(tripEvent) {
-    this.tripEvent = tripEvent;
+    this.#element = null;
+    this.#tripEvent = tripEvent;
   }
 
-  getTemplate(){
-    return createTripEventDestinationsTemplate(this.tripEvent);
+  get template(){
+    return createTripEventDestinationsTemplate(this.#tripEvent);
   }
 
-  getElement() {
-    if(!this.element){
-      this.element = createElement(this.getTemplate());
+  get element() {
+    if(!this.#element) {
+      this.#element = createElement(this.template);
     }
 
-    return this.element;
+    return this.#element;
   }
 
   removeElement() {
-    this.element = null;
+    this.#element = null;
   }
 }

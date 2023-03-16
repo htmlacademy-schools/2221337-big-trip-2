@@ -1,5 +1,5 @@
 import { createElement } from '../render.js';
-import { uppperFirstSymbol } from '../utils.js';
+import { uppperFirstSymbol, PointMode } from '../utils.js';
 import { humanizeEventTime, getTimeDifference } from '../trip-event-date.js';
 
 const createTripEventTemplate = (tripEvent, offersByType) => {
@@ -55,25 +55,31 @@ const createTripEventTemplate = (tripEvent, offersByType) => {
     </li>`);
 };
 
-export default class TripEventView{
+export default class TripEventView {
+  #element;
+  #tripEvent;
+  #offersByType;
+
   constructor(tripEvent, offersByType) {
-    this.tripEvent = tripEvent;
-    this.offersByType = offersByType;
+    this.#element = null;
+    this.#tripEvent = tripEvent;
+    this.#offersByType = offersByType;
+    this.pointMode = PointMode.DEFAULT;
   }
 
-  getTemplate() {
-    return createTripEventTemplate(this.tripEvent, this.offersByType);
+  get template() {
+    return createTripEventTemplate(this.#tripEvent, this.#offersByType);
   }
 
-  getElement() {
-    if(!this.element){
-      this.element = createElement(this.getTemplate());
+  get element() {
+    if(!this.#element) {
+      this.#element = createElement(this.template);
     }
 
-    return this.element;
+    return this.#element;
   }
 
   removeElement() {
-    this.element = null;
+    this.#element = null;
   }
 }

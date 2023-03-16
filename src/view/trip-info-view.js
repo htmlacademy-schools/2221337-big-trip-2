@@ -14,20 +14,26 @@ const createTripInfoTemplate = () => (
   </section>`
 );
 
-export default class TripInfoView{
-  getTemplate(){
+export default class TripInfoView {
+  #element;
+
+  constructor() {
+    this.#element = null;
+  }
+
+  get template() {
     return createTripInfoTemplate();
   }
 
-  getElement() {
-    if(!this.element){
-      this.element = createElement(this.getTemplate());
+  get element() {
+    if(!this.#element){
+      this.#element = createElement(this.template);
     }
 
-    return this.element;
+    return this.#element;
   }
 
   removeElement() {
-    this.element = null;
+    this.#element = null;
   }
 }

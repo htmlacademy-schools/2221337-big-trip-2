@@ -13,18 +13,21 @@ const OFFERS_TITLES = [
   'Add drinks'
 ];
 
-export default class OfferByTypeModel{
+export default class OfferByTypeModel {
+  #offers;
+  #offersByType;
+
   constructor(){
-    this.offers = Array.from(OFFERS_TITLES, (title, id) => generateOffer(id, title));
-    this.offersByType = getRandomIntInclusively(0, MAX_EMPTINESS_VARIETY) ? Array.from(TYPES,
+    this.#offers = Array.from(OFFERS_TITLES, (title, id) => generateOffer(id, title));
+    this.#offersByType = getRandomIntInclusively(0, MAX_EMPTINESS_VARIETY) ? Array.from(TYPES,
       (type) => generateOffersByType(type, shuffle(this.offers).slice(0, getRandomIntInclusively(1, this.offers.length)))) : [];
   }
 
-  getOffersByType() {
-    return this.offersByType;
+  get offersByType() {
+    return this.#offersByType;
   }
 
-  getOffers() {
-    return this.offers;
+  get offers() {
+    return this.#offers;
   }
 }
