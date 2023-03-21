@@ -4,8 +4,9 @@ import TripEventView from '../view/trip-event-view.js';
 import TripEventEditView from '../view/trip-event-edit-view.js';
 import TripEventOffer from '../view/trip-event-offers-view.js';
 import TripEventDestination from '../view/trip-event-destionation-view.js';
+import EmptyTripEventsList from '../view/empty-trip-events-list.js';
 import { render } from '../render.js';
-import { isEscapePushed, PointMode } from '../utils.js';
+import { isEscapePushed, PointMode, FilterTypes } from '../utils.js';
 
 export default class TripEventsPresenter {
   #tripEventsModel;
@@ -15,6 +16,7 @@ export default class TripEventsPresenter {
   #tripEventsComponent;
   #tripEventsList;
   #eventsForms;
+  #filterType;
 
   constructor(tripEventsComponent, tripEventsModel, offersModel) {
     this.#tripEventsModel = tripEventsModel;
@@ -27,9 +29,20 @@ export default class TripEventsPresenter {
     this.#tripEventsList = new TripEventsListView();
 
     this.#eventsForms = new Map();
+
+    this.#filterType = FilterTypes.EVERYTHING;
   }
 
   init() {
+    this.#renderBoard();
+  }
+
+  #renderBoard() {
+    if(this.#tripEvents.length === 0){
+      render(new EmptyTripEventsList(this.#filterType), this.#tripEventsComponent);
+      return;
+    }
+
     render(new SortView(), this.#tripEventsComponent);
     render(this.#tripEventsList, this.#tripEventsComponent);
 
@@ -43,6 +56,7 @@ export default class TripEventsPresenter {
     const tripEventEditForm = new TripEventEditView(tripEvent);
 
     const eventDetailsComponent = tripEventEditForm.element.querySelector('.event__details');
+
     const offersComponent = new TripEventOffer(tripEventEditForm.tripEvent, this.#offersByType);
     const destination = new TripEventDestination(tripEventEditForm.tripEvent);
 
@@ -56,9 +70,11 @@ export default class TripEventsPresenter {
     const onEscapeKeyDown = (evt) => {
       if(isEscapePushed(evt)) {
         evt.preventDefault();
+
         if(newEvent.pointMode === PointMode.EDITING) {
           replaceEventListChildren(newEvent.element, tripEventEditForm.element);
         }
+
         newEvent.pointMode = PointMode.DEFAULT;
         document.removeEventListener('keydown', onEscapeKeyDown);
       }
@@ -75,8 +91,10 @@ export default class TripEventsPresenter {
 
     const onFormOpenButtonClick = () => {
       closeAllForms();
+
       newEvent.pointMode = PointMode.EDITING;
       replaceEventListChildren(tripEventEditForm.element, newEvent.element);
+
       document.addEventListener('keydown', onEscapeKeyDown);
     };
 
@@ -84,12 +102,14 @@ export default class TripEventsPresenter {
       if(newEvent.pointMode === PointMode.EDITING) {
         replaceEventListChildren(newEvent.element, tripEventEditForm.element);
       }
+
       newEvent.pointMode = PointMode.DEFAULT;
       document.removeEventListener('keydown', onEscapeKeyDown);
     };
 
     const onEditFormSubmit = (evt) => {
       evt.preventDefault();
+
       onFormCloseButtonClick();
     };
 
