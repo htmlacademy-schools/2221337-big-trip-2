@@ -1,6 +1,6 @@
 import { generateTripEvent } from '../mock/trip-event.js';
-import { generateDate } from '../trip-event-date.js';
-import { getRandomIntInclusively, TYPES } from '../utils.js';
+import { generateDate } from '../utils/trip-event-date.js';
+import { getRandomIntInclusively, TYPES } from '../utils/common.js';
 
 export default class TripEventsModel {
   #tripEvents;

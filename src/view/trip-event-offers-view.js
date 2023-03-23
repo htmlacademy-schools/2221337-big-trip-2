@@ -1,4 +1,4 @@
-import { createElement } from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 
 const offerIndexes = new Set();
 
@@ -40,30 +40,17 @@ const createTripEventOffersTemplate = (tripEvent, offersByType) => {
   return '<section class="event__section  event__section--offers"></section>';
 };
 
-export default class TripEventOffer {
-  #element;
+export default class TripEventOfferView extends AbstractView {
   #tripEvent;
   #offersByType;
 
   constructor(tripEvent, offersByType) {
-    this.#element = null;
+    super();
     this.#tripEvent = tripEvent;
     this.#offersByType = offersByType;
   }
 
   get template() {
     return createTripEventOffersTemplate(this.#tripEvent, this.#offersByType);
-  }
-
-  get element() {
-    if(!this.#element) {
-      this.#element = createElement(this.template);
-    }
-
-    return this.#element;
-  }
-
-  removeElement() {
-    this.#element = null;
   }
 }

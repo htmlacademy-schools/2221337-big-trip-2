@@ -1,6 +1,6 @@
-import { createElement } from '../render.js';
-import { uppperFirstSymbol, PointMode } from '../utils.js';
-import { humanizeEventTime, getTimeDifference } from '../trip-event-date.js';
+import AbstractView from '../framework/view/abstract-view.js';
+import { uppperFirstSymbol, PointMode } from '../utils/common.js';
+import { humanizeEventTime, getTimeDifference } from '../utils/trip-event-date.js';
 
 const createTripEventTemplate = (tripEvent, offersByType) => {
   const {basePrice, dateFrom, dateTo, destination, isFavorite, offers, type} = tripEvent;
@@ -55,13 +55,12 @@ const createTripEventTemplate = (tripEvent, offersByType) => {
     </li>`);
 };
 
-export default class TripEventView {
-  #element;
+export default class TripEventView extends AbstractView {
   #tripEvent;
   #offersByType;
 
   constructor(tripEvent, offersByType) {
-    this.#element = null;
+    super();
     this.#tripEvent = tripEvent;
     this.#offersByType = offersByType;
     this.pointMode = PointMode.DEFAULT;
@@ -71,15 +70,15 @@ export default class TripEventView {
     return createTripEventTemplate(this.#tripEvent, this.#offersByType);
   }
 
-  get element() {
-    if(!this.#element) {
-      this.#element = createElement(this.template);
-    }
+  setFormOpenClickHandler(callback) {
+    this._callback.formOpenClick = callback;
 
-    return this.#element;
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#onFormOpenClick);
   }
 
-  removeElement() {
-    this.#element = null;
+  #onFormOpenClick = (evt) => {
+    evt.preventDefault();
+
+    this._callback.formOpenClick();
   }
 }
