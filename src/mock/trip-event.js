@@ -1,5 +1,5 @@
-import { getRandomIntInclusively, shuffle } from '../utils.js';
-import { generateDateTo } from '../trip-event-date.js';
+import { getRandomIntInclusively, shuffle } from '../utils/common.js';
+import { generateDateTo } from '../utils/trip-event-date.js';
 
 const MIN_BASE_PRICE = 1000;
 const MAX_BASE_PRICE = 10000;

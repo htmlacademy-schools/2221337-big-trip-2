@@ -1,4 +1,4 @@
-import { getRandomIntInclusively, shuffle} from '../utils.js';
+import { getRandomIntInclusively, shuffle } from '../utils/common.js';
 
 const DESCRIPTIONS = [
   'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',

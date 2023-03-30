@@ -1,4 +1,4 @@
-import { createElement } from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 
 const messagesByFilterType = {
   'everything': 'Click New Event to create your first point',
@@ -8,28 +8,15 @@ const messagesByFilterType = {
 
 const createEmptyListTemplate = (filterType) => `<p class="trip-events__msg">${messagesByFilterType[filterType]}</p>`;
 
-export default class EmptyTripEventsList {
-  #element;
+export default class EmptyTripEventsList extends AbstractView {
   #filterType;
 
   constructor(filterType) {
-    this.#element = null;
+    super();
     this.#filterType = filterType;
   }
 
   get template() {
     return createEmptyListTemplate(this.#filterType);
-  }
-
-  get element() {
-    if(!this.#element){
-      this.#element = createElement(this.template);
-    }
-
-    return this.#element;
-  }
-
-  removeElement() {
-    this.#element = null;
   }
 }

@@ -1,5 +1,5 @@
 import { generateOffersByType, generateOffer } from '../mock/offer.js';
-import { TYPES, shuffle, getRandomIntInclusively } from '../utils';
+import { TYPES, shuffle, getRandomIntInclusively } from '../utils/common.js';
 
 const MAX_EMPTINESS_VARIETY = 5;
 
