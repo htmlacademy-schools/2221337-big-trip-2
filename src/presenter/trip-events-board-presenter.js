@@ -6,7 +6,8 @@ import TripEventOfferView from '../view/trip-event-offers-view.js';
 import TripEventDestination from '../view/trip-event-destionation-view.js';
 import EmptyTripEventsList from '../view/empty-trip-events-list-view.js';
 import { render, replace } from '../framework/render.js';
-import { isEscapePushed, PointMode, FilterTypes } from '../utils/common.js';
+import { isEscapePushed, PointMode } from '../utils/common.js';
+import { FilterTypes } from '../utils/filter.js';
 
 export default class TripEventsPresenter {
   #tripEventsModel;

@@ -5,12 +5,6 @@ const PointMode = {
   EDITING: 'editing',
 };
 
-const FilterTypes = {
-  EVERYTHING: 'everything',
-  FUTURE: 'future',
-  PAST: 'past',
-};
-
 const getRandomIntInclusively = (min, max) => {
   min = Math.ceil(min);
   max = Math.floor(max);
@@ -36,4 +30,4 @@ const shuffle = (array) => {
 
 const isEscapePushed = (evt) => evt.key === 'Escape';
 
-export {getRandomIntInclusively, uppperFirstSymbol, TYPES, shuffle, isEscapePushed, PointMode, FilterTypes};
+export {getRandomIntInclusively, uppperFirstSymbol, TYPES, shuffle, isEscapePushed, PointMode};
