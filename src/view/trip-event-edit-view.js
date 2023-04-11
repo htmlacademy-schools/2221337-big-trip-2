@@ -126,6 +126,10 @@ export default class TripEventEditView extends AbstractView {
     return createTripEventEditTemplate(this.#tripEvent);
   }
 
+  get detailsComponent() {
+    return this.element.querySelector('.event__details');
+  }
+
   setFormSubmitHandler(callback) {
     this._callback.formSubmit = callback;
 
@@ -141,12 +145,12 @@ export default class TripEventEditView extends AbstractView {
   #onFormSubmit = (evt) => {
     evt.preventDefault();
 
-    this._callback.formSubmit();
-  }
+    this._callback.formSubmit(this.#tripEvent);
+  };
 
   #onFormCloseClick = (evt) => {
     evt.preventDefault();
 
     this._callback.formCloseClick();
-  }
+  };
 }

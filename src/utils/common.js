@@ -30,4 +30,14 @@ const shuffle = (array) => {
 
 const isEscapePushed = (evt) => evt.key === 'Escape';
 
-export {getRandomIntInclusively, uppperFirstSymbol, TYPES, shuffle, isEscapePushed, PointMode};
+const updateItem = (items, updatedItem) => {
+  const updatedItemIndex = items.findIndex((item) => item.id === updatedItem.id);
+
+  if(updatedItemIndex === -1) {
+    return items;
+  }
+
+  return [...items.slice(0, updatedItemIndex), updatedItem, ...items.slice(updatedItemIndex + 1)];
+};
+
+export {getRandomIntInclusively, uppperFirstSymbol, TYPES, shuffle, isEscapePushed, PointMode, updateItem};

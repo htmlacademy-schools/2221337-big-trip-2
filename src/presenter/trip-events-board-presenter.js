@@ -1,23 +1,20 @@
 import SortView from '../view/sort-view.js';
 import TripEventsListView from '../view/trip-events-list-view.js';
-import TripEventView from '../view/trip-event-view.js';
-import TripEventEditView from '../view/trip-event-edit-view.js';
-import TripEventOfferView from '../view/trip-event-offers-view.js';
-import TripEventDestination from '../view/trip-event-destionation-view.js';
 import EmptyTripEventsList from '../view/empty-trip-events-list-view.js';
-import { render, replace } from '../framework/render.js';
-import { isEscapePushed, PointMode } from '../utils/common.js';
+import TripEventPresenter from './trip-event-presenter.js';
+import { render } from '../framework/render.js';
 import { FilterTypes } from '../utils/filter.js';
+import { updateItem } from '../utils/common.js';
 
-export default class TripEventsPresenter {
+export default class TripEventsBoardPresenter {
   #tripEventsModel;
   #tripEvents;
   #offersModel;
   #offersByType;
   #tripEventsComponent;
   #tripEventsList;
-  #eventsForms;
   #filterType;
+  #tripEventsPresenters;
 
   constructor(tripEventsComponent, tripEventsModel, offersModel) {
     this.#tripEventsModel = tripEventsModel;
@@ -29,7 +26,7 @@ export default class TripEventsPresenter {
     this.#tripEventsComponent = tripEventsComponent;
     this.#tripEventsList = new TripEventsListView();
 
-    this.#eventsForms = new Map();
+    this.#tripEventsPresenters = new Map();
 
     this.#filterType = FilterTypes.EVERYTHING;
   }
@@ -40,78 +37,46 @@ export default class TripEventsPresenter {
 
   #renderBoard() {
     if(this.#tripEvents.length === 0){
-      render(new EmptyTripEventsList(this.#filterType), this.#tripEventsComponent);
+      this.#renderNoEventsMessage();
       return;
     }
 
+    this.#renderSort();
+    this.#renderTripEventsList();
+  }
+
+  #renderNoEventsMessage() {
+    render(new EmptyTripEventsList(this.#filterType), this.#tripEventsComponent);
+  }
+
+  #renderSort() {
     render(new SortView(), this.#tripEventsComponent);
+  }
+
+  #renderTripEventsList() {
     render(this.#tripEventsList, this.#tripEventsComponent);
 
+    this.#renderTripEvents();
+  }
+
+  #renderTripEvents() {
     for(let i = 0; i < this.#tripEvents.length; i++) {
       this.#renderTripEvent(this.#tripEvents[i]);
     }
   }
 
+  #onTripEventChange = (updatedItem) => {
+    this.#tripEvents = updateItem(this.#tripEvents, updatedItem);
+    this.#tripEventsPresenters.get(updatedItem.id).init(updatedItem);
+  };
+
+  #onTripEventModeChange = () => {
+    this.#tripEventsPresenters.forEach((tripEvent) => tripEvent.resetTripEventMode());
+  };
+
   #renderTripEvent(tripEvent) {
-    const newEvent = new TripEventView(tripEvent, this.#offersByType);
-    const tripEventEditForm = new TripEventEditView(tripEvent);
-
-    const eventDetailsComponent = tripEventEditForm.element.querySelector('.event__details');
-
-    const offersComponent = new TripEventOfferView(tripEventEditForm.tripEvent, this.#offersByType);
-    const destination = new TripEventDestination(tripEventEditForm.tripEvent);
-
-    render(offersComponent, eventDetailsComponent);
-    render(destination, eventDetailsComponent);
-
-    const onEscapeKeyDown = (evt) => {
-      if(isEscapePushed(evt)) {
-        evt.preventDefault();
-
-        if(newEvent.pointMode === PointMode.EDITING) {
-          replace(newEvent, tripEventEditForm);
-        }
-
-        newEvent.pointMode = PointMode.DEFAULT;
-        document.removeEventListener('keydown', onEscapeKeyDown);
-      }
-    };
-
-    const closeAllForms = () => {
-      for (const [point, eventForm] of this.#eventsForms){
-        if(point.pointMode === PointMode.EDITING){
-          point.pointMode = PointMode.DEFAULT;
-          replace(point, eventForm);
-        }
-      }
-    };
-
-    const onFormOpenButtonClick = () => {
-      closeAllForms();
-
-      newEvent.pointMode = PointMode.EDITING;
-      replace(tripEventEditForm, newEvent);
-
-      document.addEventListener('keydown', onEscapeKeyDown);
-    };
-
-    const onFormCloseButtonClick = () => {
-      if(newEvent.pointMode === PointMode.EDITING) {
-        replace(newEvent, tripEventEditForm);
-      }
-
-      newEvent.pointMode = PointMode.DEFAULT;
-      document.removeEventListener('keydown', onEscapeKeyDown);
-    };
-
-    newEvent.setFormOpenClickHandler(onFormOpenButtonClick);
-
-    tripEventEditForm.setFormSubmitHandler(onFormCloseButtonClick);
-
-    tripEventEditForm.setFormCloseClickHandler(onFormCloseButtonClick);
-
-    this.#eventsForms.set(newEvent, tripEventEditForm);
-
-    render(newEvent, this.#tripEventsList.element);
+    const tripEventPresenter = new TripEventPresenter(this.#tripEventsList.element, this.#offersByType, this.#onTripEventChange, this.#onTripEventModeChange);
+    tripEventPresenter.init(tripEvent);
+    this.#tripEventsPresenters.set(tripEvent.id, tripEventPresenter);
   }
 }
