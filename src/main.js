@@ -1,5 +1,5 @@
 import HeaderPresenter from './presenter/header-prsenter.js';
-import TripEventsPresenter from './presenter/trip-events-board-presenter.js';
+import TripEventsBoardPresenter from './presenter/trip-events-board-presenter.js';
 import TripEventsModel from './model/trip-events-model.js';
 import OfferByTypeModel from './model/offer-model.js';
 import TripEventDestinationModel from './model/trip-event-destination-model.js';
@@ -18,7 +18,7 @@ const tripEventModel = new TripEventsModel(getRandomIntInclusively(0, 1) ? 0 : E
 const filters = generateFilters(tripEventModel.tripEvents);
 
 const headerPresenter = new HeaderPresenter(tripMainContainer, filters, tripEventModel.tripEvents);
-const tripEventsPresenter = new TripEventsPresenter(tripEventsComponent, tripEventModel, offerByTypeModel);
+const tripEventsPresenter = new TripEventsBoardPresenter(tripEventsComponent, tripEventModel, offerByTypeModel);
 
 headerPresenter.init();
 tripEventsPresenter.init();
