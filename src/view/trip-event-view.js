@@ -7,7 +7,7 @@ const createTripEventTemplate = (tripEvent, offersByType) => {
 
   const isFavoriteButtonClass = isFavorite ? 'event__favorite-btn--active' : '';
 
-  const timeDifference = getTimeDifference(dateFrom, dateTo, 'minute');
+  const timeDifference = getTimeDifference(dateFrom, dateTo);
 
   const eventOffersByType = offersByType.length && offers.length ? offersByType
     .find((offer) => offer.type === type)
