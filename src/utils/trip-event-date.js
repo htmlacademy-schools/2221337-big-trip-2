@@ -11,16 +11,21 @@ const MAX_HOURS_IN_DAY = 24;
 const humanizeEventTime = (dateTime, format) => dayjs(dateTime).format(format).toUpperCase();
 
 const transformTimeDifference = (difference) => {
+  let format = 'DD[D] HH[H] mm[M]';
+
   if(difference < MAX_MINUTES_IN_HOUR){
-    return humanizeEventTime(dayjs().minute(difference), 'mm[M]');
+    format = 'mm[M]';
   }
   else if (difference / MAX_MINUTES_IN_HOUR < MAX_HOURS_IN_DAY) {
-    return humanizeEventTime(dayjs().hour(difference), 'HH[H] mm[M]');
+    format = 'HH[H] mm[M]';
   }
-  return humanizeEventTime(dayjs().date(difference), 'DD[D] HH[H] mm[M]');
+  return humanizeEventTime(dayjs()
+    .date(difference / (MAX_MINUTES_IN_HOUR * MAX_HOURS_IN_DAY))
+    .hour((difference / MAX_MINUTES_IN_HOUR) % MAX_HOURS_IN_DAY)
+    .minute(difference % MAX_MINUTES_IN_HOUR), format);
 };
 
-const getTimeDifference = (dateFrom, dateTo, unit) => transformTimeDifference(dayjs(dateTo).diff(dayjs(dateFrom), unit));
+const getTimeDifference = (dateFrom, dateTo) => transformTimeDifference(dayjs(dateTo).diff(dayjs(dateFrom), 'minute'));
 
 const generateDate = () => getRandomIntInclusively(0, 1)
   ? dayjs().add(getRandomIntInclusively(0, MAX_EVENT_TIME_GAP), 'hour').toString()
@@ -56,4 +61,14 @@ const getLatestEvent = (tripEvents) => {
   return latestEvent;
 };
 
-export {humanizeEventTime, getTimeDifference, generateDate, generateDateTo, isPast, isFuture, getEarliestEvent, getLatestEvent};
+const sortByDate = (currentEvent, nextEvent) => {
+  const dateFromDifference = dayjs(currentEvent.dateFrom).diff(dayjs(nextEvent.dateFrom));
+
+  return dateFromDifference === 0 ? dayjs(nextEvent.dateTo).diff(dayjs(currentEvent.dateTo)) : dateFromDifference;
+};
+
+const sortByDuration = (currentEvent, nextEvent) => dayjs(nextEvent.dateTo).diff(dayjs(nextEvent.dateFrom)) - dayjs(currentEvent.dateTo).diff(dayjs(currentEvent.dateFrom));
+
+
+export {humanizeEventTime, getTimeDifference, generateDate, generateDateTo, isPast, isFuture,
+  getEarliestEvent, getLatestEvent, sortByDate, sortByDuration};
