@@ -2,8 +2,10 @@ import { sortByDate, sortByDuration } from './trip-event-date.js';
 
 const SortType = {
   DAY: 'day',
+  EVENT: 'event',
   TIME: 'time',
-  PRICE: 'price'
+  PRICE: 'price',
+  OFFER: 'offer',
 };
 
 const sortTripEvents = {

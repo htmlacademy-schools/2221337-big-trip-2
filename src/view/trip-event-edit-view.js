@@ -1,8 +1,78 @@
-import AbstractView from '../framework/view/abstract-view.js';
-import { uppperFirstSymbol } from '../utils/common.js';
+import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
+import { uppperFirstSymbol, shuffle, getRandomIntInclusively, DESCRIPTIONS, PLACES_NAMES, TYPES } from '../utils/common.js';
 import { humanizeEventTime } from '../utils/trip-event-date.js';
 
-const createTripEventEditTemplate = (tripEvent) => {
+const MAX_SENTENCES = 5;
+
+const MAX_PHOTO_INDEX = 100;
+const MAX_PHOTO_COUNT = 5;
+
+const createTripEventOffersTemplate = (tripEvent, offersByType) => {
+  const {offers} = tripEvent;
+
+  if(offersByType.length) {
+    const eventOffersByType = offersByType.map((offer) => {
+      const checked = offers.includes(offer.id) ? 'checked' : '';
+
+      const titleClass = offer.title.toLowerCase().replace(' ', '-');
+
+      return (
+        `<div class="event__offer-selector">
+          <input class="event__offer-checkbox  visually-hidden" id="event-offer-${titleClass}-1" data-offer-title="${offer.title}" type="checkbox" name="event-offer-${titleClass}" ${checked}>
+          <label class="event__offer-label" for="event-offer-${titleClass}-1">
+            <span class="event__offer-title">${offer.title}</span>
+            &plus;&euro;&nbsp;
+            <span class="event__offer-price">${offer.price}</span>
+          </label>
+        </div>`
+      );
+    }).join('');
+
+    return(
+      `<section class="event__section  event__section--offers">
+        <h3 class="event__section-title  event__section-title--offers">Offers</h3>
+
+        <div class="event__available-offers">
+          ${eventOffersByType}
+        </div>
+      </section>`
+    );
+  }
+  return '<section class="event__section  event__section--offers"></section>';
+};
+
+const createTripEventDestinationsTemplate = (tripEvent) => {
+  if(tripEvent.destination.description.length || tripEvent.destination.pictures.length) {
+    const pictures = tripEvent.destination.pictures.map((picture) =>
+      `<img class="event__photo" src="${picture.src}" alt="${picture.description}">`).join('');
+
+    return(
+      `<section class="event__section  event__section--destination">
+        <h3 class="event__section-title  event__section-title--destination">Destination</h3>
+        <p class="event__destination-description">${tripEvent.destination.description}</p>
+
+        <div class="event__photos-container">
+          <div class="event__photos-tape">
+            ${pictures}
+          </div>
+        </div>
+      </section>`
+    );
+  }
+  return '<section class="event__section  event__section--destination"></section>';
+};
+
+const createEventTypeFields = (currentType) => (
+  Array.from(TYPES, (eventType) => {
+    const isChecked = eventType === currentType ? 'checked' : '';
+    return (`<div class="event__type-item">
+                  <input id="event-type-${eventType}-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${eventType}" ${isChecked}>
+                  <label class="event__type-label  event__type-label--${eventType}" for="event-type-${eventType}-1">${uppperFirstSymbol(eventType)}</label>
+                </div>`);
+  }).join('')
+);
+
+const createTripEventEditTemplate = (tripEvent, offersByType) => {
   const {basePrice, dateFrom, dateTo, destination, type} = tripEvent;
 
   return (
@@ -19,51 +89,7 @@ const createTripEventEditTemplate = (tripEvent) => {
             <div class="event__type-list">
               <fieldset class="event__type-group">
                 <legend class="visually-hidden">Event type</legend>
-
-                <div class="event__type-item">
-                  <input id="event-type-taxi-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="taxi">
-                  <label class="event__type-label  event__type-label--taxi" for="event-type-taxi-1">Taxi</label>
-                </div>
-
-                <div class="event__type-item">
-                  <input id="event-type-bus-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="bus">
-                  <label class="event__type-label  event__type-label--bus" for="event-type-bus-1">Bus</label>
-                </div>
-
-                <div class="event__type-item">
-                  <input id="event-type-train-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="train">
-                  <label class="event__type-label  event__type-label--train" for="event-type-train-1">Train</label>
-                </div>
-
-                <div class="event__type-item">
-                  <input id="event-type-ship-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="ship">
-                  <label class="event__type-label  event__type-label--ship" for="event-type-ship-1">Ship</label>
-                </div>
-
-                <div class="event__type-item">
-                  <input id="event-type-drive-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="drive">
-                  <label class="event__type-label  event__type-label--drive" for="event-type-drive-1">Drive</label>
-                </div>
-
-                <div class="event__type-item">
-                  <input id="event-type-flight-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="flight" checked>
-                  <label class="event__type-label  event__type-label--flight" for="event-type-flight-1">Flight</label>
-                </div>
-
-                <div class="event__type-item">
-                  <input id="event-type-check-in-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="check-in">
-                  <label class="event__type-label  event__type-label--check-in" for="event-type-check-in-1">Check-in</label>
-                </div>
-
-                <div class="event__type-item">
-                  <input id="event-type-sightseeing-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="sightseeing">
-                  <label class="event__type-label  event__type-label--sightseeing" for="event-type-sightseeing-1">Sightseeing</label>
-                </div>
-
-                <div class="event__type-item">
-                  <input id="event-type-restaurant-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="restaurant">
-                  <label class="event__type-label  event__type-label--restaurant" for="event-type-restaurant-1">Restaurant</label>
-                </div>
+                ${createEventTypeFields(type)}
               </fieldset>
             </div>
           </div>
@@ -74,9 +100,7 @@ const createTripEventEditTemplate = (tripEvent) => {
             </label>
             <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destination.name}" list="destination-list-1">
             <datalist id="destination-list-1">
-              <option value="Amsterdam"></option>
-              <option value="Geneva"></option>
-              <option value="${destination.name}"></option>
+              ${Array.from(PLACES_NAMES, (place) => `<option value="${place}"></option>`).join('')}
             </datalist>
           </div>
 
@@ -103,32 +127,37 @@ const createTripEventEditTemplate = (tripEvent) => {
           </button>
         </header>
         <section class="event__details">
-
+          ${createTripEventOffersTemplate(tripEvent, offersByType)}
+          ${createTripEventDestinationsTemplate(tripEvent)}
         </section>
       </form>
     </li>`
   );
 };
 
-export default class TripEventEditView extends AbstractView {
-  #tripEvent;
+export default class TripEventEditView extends AbstractStatefulView {
+  #offersByType;
+  #offersByCurrentType;
 
-  constructor(tripEvent) {
+  constructor(tripEvent, offersByType) {
     super();
-    this.#tripEvent = tripEvent;
-  }
+    this._state = TripEventEditView.parseTripEventToState(tripEvent);
 
-  get tripEvent() {
-    return this.#tripEvent;
+    this.#offersByType = offersByType;
+    this.#offersByCurrentType = this.#offersByType.length ? this.#offersByType.find((offer) => offer.type === tripEvent.type).offers : [];
+
+    this.#setInnerHandlers();
   }
 
   get template() {
-    return createTripEventEditTemplate(this.#tripEvent);
+    return createTripEventEditTemplate(this._state, this.#offersByCurrentType);
   }
 
-  get detailsComponent() {
-    return this.element.querySelector('.event__details');
-  }
+  _restoreHandlers = () => {
+    this.#setInnerHandlers();
+    this.setFormSubmitHandler(this._callback.formSubmit);
+    this.setFormCloseClickHandler(this._callback.formCloseClick);
+  };
 
   setFormSubmitHandler(callback) {
     this._callback.formSubmit = callback;
@@ -142,10 +171,24 @@ export default class TripEventEditView extends AbstractView {
     this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#onFormCloseClick);
   }
 
+  reset(tripEvent) {
+    this.#updateOffersByCurrentType(tripEvent.type);
+
+    this.updateElement({
+      offers: tripEvent.offers,
+    });
+
+    this.updateElement(TripEventEditView.parseTripEventToState(tripEvent));
+  }
+
+  #updateOffersByCurrentType(newType) {
+    this.#offersByCurrentType = this.#offersByType.length ? this.#offersByType.find((offer) => offer.type === newType).offers : [];
+  }
+
   #onFormSubmit = (evt) => {
     evt.preventDefault();
 
-    this._callback.formSubmit(this.#tripEvent);
+    this._callback.formSubmit(TripEventEditView.parseStateToTripEvent(this._state));
   };
 
   #onFormCloseClick = (evt) => {
@@ -153,4 +196,79 @@ export default class TripEventEditView extends AbstractView {
 
     this._callback.formCloseClick();
   };
+
+  #onEventTypeClick = (evt) => {
+    if(evt.target.tagName !== 'INPUT') {
+      return;
+    }
+
+    evt.preventDefault();
+
+    this.#updateOffersByCurrentType(evt.target.value);
+
+    this.updateElement({
+      type: evt.target.value,
+      offers: this.#offersByCurrentType.length ? shuffle(Array.from(this.#offersByCurrentType, (offer) => offer.id)).slice(0, getRandomIntInclusively(1, this.#offersByCurrentType.length)) : [],
+    });
+  };
+
+  #onEventPlaceChange = (evt) => {
+    evt.preventDefault();
+
+    this.updateElement({
+      destination: {...this._state.destination,
+        description: shuffle(DESCRIPTIONS).slice(0, getRandomIntInclusively(0, MAX_SENTENCES)).join(' '),
+        name: evt.target.value,
+        pictures: Array.from({length: getRandomIntInclusively(0, MAX_PHOTO_COUNT)}, () => (
+          {
+            src: `http://picsum.photos/248/152?r=${getRandomIntInclusively(1, MAX_PHOTO_INDEX)}`,
+            description: DESCRIPTIONS[getRandomIntInclusively(0, DESCRIPTIONS.length - 1)],
+          }
+        )),
+      }
+    });
+  };
+
+  #onOfferClick = (evt) => {
+    if(evt.target.tagName !== 'INPUT') {
+      return;
+    }
+
+    evt.preventDefault();
+
+    const newOffer = this.#offersByCurrentType.find((offer) => offer.title === evt.target.dataset.offerTitle).id;
+
+    if(this._state.offers.includes(newOffer)) {
+      this._state.offers.splice(this._state.offers.indexOf(newOffer), 1);
+    } else {
+      this._state.offers.push(newOffer);
+    }
+
+    this.updateElement({
+      offers: this._state.offers,
+    });
+  };
+
+  #onPriceInput = (evt) => {
+    evt.preventDefault();
+
+    this._setState({
+      basePrice: evt.target.value,
+    });
+  };
+
+  #setInnerHandlers = () => {
+    this.element.querySelector('.event__type-group').addEventListener('click', this.#onEventTypeClick);
+    this.element.querySelector('#event-destination-1').addEventListener('change', this.#onEventPlaceChange);
+
+    if(this.#offersByType.length && this.#offersByCurrentType.length) {
+      this.element.querySelector('.event__available-offers').addEventListener('click', this.#onOfferClick);
+    }
+
+    this.element.querySelector('#event-price-1').addEventListener('input', this.#onPriceInput);
+  };
+
+  static parseTripEventToState = (tripEvent) => ({...tripEvent});
+
+  static parseStateToTripEvent = (state) => ({...state});
 }

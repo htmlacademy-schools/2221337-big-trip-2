@@ -5,10 +5,12 @@ import { getRandomIntInclusively, TYPES } from '../utils/common.js';
 export default class TripEventsModel {
   #tripEvents;
 
-  constructor(eventsCount, offersCount, destinations) {
+  constructor(eventsCount, offersByType, destinations) {
     this.#tripEvents = Array.from({length: eventsCount},
-      (tripEvent, id) =>
-        generateTripEvent(id, TYPES[getRandomIntInclusively(0, TYPES.length - 1)], offersCount, destinations[id], generateDate()));
+      (tripEvent, id) => {
+        const type = TYPES[getRandomIntInclusively(0, TYPES.length - 1)];
+        return generateTripEvent(id, type, offersByType.length ? offersByType.find((offer) => offer.type === type).offers : [], destinations[id], generateDate());
+      });
   }
 
   get tripEvents() {
