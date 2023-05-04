@@ -1,24 +1,24 @@
 import TripEventView from '../view/trip-event-view.js';
 import TripEventEditView from '../view/trip-event-edit-view.js';
-import TripEventOfferView from '../view/trip-event-offers-view.js';
-import TripEventDestination from '../view/trip-event-destionation-view.js';
 import { render, replace, remove } from '../framework/render.js';
 import { isEscapePushed, PointMode } from '../utils/common.js';
 
 export default class TripEventPresenter {
+  #tripEvent;
+  #pointMode;
+
+  #tripEventsListContainer;
   #tripEventComponent;
   #editFormComponent;
-  #tripEventsListContainer;
-  #tripEvent;
+
   #offersByType;
-  #offersComponent;
-  #destinationComponent;
+
   #changeData;
   #changePointMode;
-  #pointMode;
 
   constructor(tripEventsListContainer, offersByType, changeData, changePointMode) {
     this.#tripEventsListContainer = tripEventsListContainer;
+
     this.#offersByType = offersByType;
 
     this.#changeData = changeData;
@@ -76,25 +76,10 @@ export default class TripEventPresenter {
   }
 
   #renderEditFormComponent() {
-    this.#editFormComponent = new TripEventEditView(this.#tripEvent);
-
-    this.#renderOffersComponent();
-    this.#renderDestinationComponent();
+    this.#editFormComponent = new TripEventEditView(this.#tripEvent, this.#offersByType);
 
     this.#editFormComponent.setFormSubmitHandler(this.#onFormSubmit);
     this.#editFormComponent.setFormCloseClickHandler(this.#onFormCloseButtonClick);
-  }
-
-  #renderOffersComponent() {
-    this.#offersComponent = new TripEventOfferView(this.#editFormComponent.tripEvent, this.#offersByType);
-
-    render(this.#offersComponent, this.#editFormComponent.detailsComponent);
-  }
-
-  #renderDestinationComponent() {
-    this.#destinationComponent = new TripEventDestination(this.#editFormComponent.tripEvent);
-
-    render(this.#destinationComponent, this.#editFormComponent.detailsComponent);
   }
 
   #replacePointToForm() {
@@ -107,6 +92,7 @@ export default class TripEventPresenter {
   }
 
   #replaceFormToPoint() {
+    this.#editFormComponent.reset(this.#tripEvent);
     replace(this.#tripEventComponent, this.#editFormComponent);
 
     document.removeEventListener('keydown', this.#onEscapeKeyDown);
@@ -131,6 +117,7 @@ export default class TripEventPresenter {
     if(isEscapePushed(evt)) {
       evt.preventDefault();
 
+      this.#editFormComponent.reset(this.#tripEvent);
       this.#replaceFormToPoint();
     }
   };

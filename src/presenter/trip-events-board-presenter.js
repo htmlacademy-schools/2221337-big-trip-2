@@ -90,17 +90,21 @@ export default class TripEventsBoardPresenter {
     this.#tripEventsPresenters.clear();
   }
 
+  #sortTripEvents = (sortType) => {
+    sortTripEvents[sortType](this.#tripEvents);
+
+    this.#clearTripEventsList();
+    this.#renderTripEvents();
+  };
+
   #onSortTypeChange = (sortType) => {
     if(sortType === this.#currentSortType) {
       return;
     }
 
-    sortTripEvents[sortType](this.#tripEvents);
-
     this.#currentSortType = sortType;
 
-    this.#clearTripEventsList();
-    this.#renderTripEvents();
+    this.#sortTripEvents(sortType);
   };
 
   #onTripEventChange = (updatedItem) => {
@@ -108,6 +112,8 @@ export default class TripEventsBoardPresenter {
     this.#sourcedTripEvents = updateItem(this.#sourcedTripEvents, updatedItem);
 
     this.#tripEventsPresenters.get(updatedItem.id).init(updatedItem);
+
+    this.#sortTripEvents(this.#currentSortType);
   };
 
   #onTripEventModeChange = () => {

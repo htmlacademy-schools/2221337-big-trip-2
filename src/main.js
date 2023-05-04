@@ -13,7 +13,7 @@ const tripEventsComponent = document.querySelector('.trip-events');
 
 const offerByTypeModel = new OfferByTypeModel();
 const destinationModel = new TripEventDestinationModel(EVENTS_COUNT);
-const tripEventModel = new TripEventsModel(getRandomIntInclusively(0, 1) ? 0 : EVENTS_COUNT, offerByTypeModel.offers.length, destinationModel.destinations);
+const tripEventModel = new TripEventsModel(getRandomIntInclusively(0, 1) ? 0 : EVENTS_COUNT, [...offerByTypeModel.offersByType], destinationModel.destinations);
 
 const filters = generateFilters(tripEventModel.tripEvents);
 
