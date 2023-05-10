@@ -33,7 +33,7 @@ const generateDate = () => getRandomIntInclusively(0, 1)
 
 const generateDateTo = (dateFrom) => dayjs(dateFrom).add(getRandomIntInclusively(MIN_EVENT_DURATION, MAX_EVENT_DURATION), 'hour').toString();
 
-const isPast = (date, unit) => dayjs().isAfter(dayjs(date), unit);
+const isPast = (date, unit, dateFrom = dayjs()) => dayjs(dateFrom).isAfter(dayjs(date), unit);
 
 const isFuture = (date, unit) => dayjs().isBefore(dayjs(date), unit) || dayjs().isSame(dayjs(date), unit);
 
@@ -68,7 +68,6 @@ const sortByDate = (currentEvent, nextEvent) => {
 };
 
 const sortByDuration = (currentEvent, nextEvent) => dayjs(nextEvent.dateTo).diff(dayjs(nextEvent.dateFrom)) - dayjs(currentEvent.dateTo).diff(dayjs(currentEvent.dateFrom));
-
 
 export {humanizeEventTime, getTimeDifference, generateDate, generateDateTo, isPast, isFuture,
   getEarliestEvent, getLatestEvent, sortByDate, sortByDuration};
