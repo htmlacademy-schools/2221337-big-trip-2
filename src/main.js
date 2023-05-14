@@ -1,10 +1,12 @@
-import HeaderPresenter from './presenter/header-prsenter.js';
+import TripInfoView from './view/trip-info-view.js';
+import FilterView from './view/filter-view.js';
 import TripEventsBoardPresenter from './presenter/trip-events-board-presenter.js';
 import TripEventsModel from './model/trip-events-model.js';
 import OfferByTypeModel from './model/offer-model.js';
 import TripEventDestinationModel from './model/trip-event-destination-model.js';
-import { getRandomIntInclusively } from './utils/common.js';
 import { generateFilters } from './mock/filter.js';
+import { render } from './framework/render.js';
+import { RenderPosition } from './framework/render.js';
 
 const EVENTS_COUNT = 20;
 
@@ -13,12 +15,15 @@ const tripEventsComponent = document.querySelector('.trip-events');
 
 const offerByTypeModel = new OfferByTypeModel();
 const destinationModel = new TripEventDestinationModel(EVENTS_COUNT);
-const tripEventModel = new TripEventsModel(getRandomIntInclusively(0, 1) ? 0 : EVENTS_COUNT, [...offerByTypeModel.offersByType], destinationModel.destinations);
+const tripEventModel = new TripEventsModel(EVENTS_COUNT, [...offerByTypeModel.offersByType], destinationModel.destinations);
 
 const filters = generateFilters(tripEventModel.tripEvents);
 
-const headerPresenter = new HeaderPresenter(tripMainContainer, filters, tripEventModel.tripEvents);
 const tripEventsPresenter = new TripEventsBoardPresenter(tripEventsComponent, tripEventModel, offerByTypeModel);
 
-headerPresenter.init();
+if(tripEventModel.tripEvents.length !== 0) {
+  render(new TripInfoView(tripEventModel.tripEvents), tripMainContainer, RenderPosition.AFTERBEGIN);
+}
+render(new FilterView(filters), tripMainContainer.querySelector('.trip-controls__filters'));
+
 tripEventsPresenter.init();
