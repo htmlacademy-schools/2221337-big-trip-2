@@ -74,8 +74,14 @@ const createEventTypeFields = (currentType) => (
   }).join('')
 );
 
-const createTripEventEditTemplate = (tripEvent, offersByType) => {
+const createTripEventEditTemplate = (tripEvent, offersByType, isNewEvent) => {
   const {basePrice, dateFrom, dateTo, destination, type} = tripEvent;
+
+  const price = isNewEvent && basePrice === 0 ? '' : basePrice;
+  const rollUpButton = isNewEvent ? '' :
+    `<button class="event__rollup-btn" type="button">
+      <span class="visually-hidden">Open event</span>
+    </button>`;
 
   return (
     `<li class="trip-events__item">
@@ -119,14 +125,12 @@ const createTripEventEditTemplate = (tripEvent, offersByType) => {
               <span class="visually-hidden">Price</span>
               &euro;
             </label>
-            <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${basePrice}">
+            <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${price}">
           </div>
 
           <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
-          <button class="event__reset-btn" type="reset">Delete</button>
-          <button class="event__rollup-btn" type="button">
-            <span class="visually-hidden">Open event</span>
-          </button>
+          <button class="event__reset-btn" type="reset">${isNewEvent ? 'Cancel' : 'Delete'}</button>
+          ${rollUpButton}
         </header>
         <section class="event__details">
           ${createTripEventOffersTemplate(tripEvent, offersByType)}
@@ -144,7 +148,9 @@ export default class TripEventEditView extends AbstractStatefulView {
   #dateFromPicker;
   #dateToPicker;
 
-  constructor(tripEvent, offersByType) {
+  #isNewEvent;
+
+  constructor(offersByType, tripEvent, isNewEvent = false) {
     super();
     this._state = TripEventEditView.parseTripEventToState(tripEvent);
 
@@ -154,6 +160,8 @@ export default class TripEventEditView extends AbstractStatefulView {
     this.#dateFromPicker = null;
     this.#dateToPicker = null;
 
+    this.#isNewEvent = isNewEvent;
+
     this.#setInnerHandlers();
 
     this.#setDateFromPicker();
@@ -161,7 +169,7 @@ export default class TripEventEditView extends AbstractStatefulView {
   }
 
   get template() {
-    return createTripEventEditTemplate(this._state, this.#offersByCurrentType);
+    return createTripEventEditTemplate(this._state, this.#offersByCurrentType, this.#isNewEvent);
   }
 
   _restoreHandlers = () => {
@@ -171,7 +179,10 @@ export default class TripEventEditView extends AbstractStatefulView {
     this.#setDateToPicker();
 
     this.setFormSubmitHandler(this._callback.formSubmit);
-    this.setFormCloseClickHandler(this._callback.formCloseClick);
+    if(!this.#isNewEvent) {
+      this.setFormCloseClickHandler(this._callback.formCloseClick);
+    }
+    this.setFormDeleteHandler(this._callback.formDelete);
   };
 
   removeElement = () => {
@@ -190,6 +201,12 @@ export default class TripEventEditView extends AbstractStatefulView {
     this._callback.formSubmit = callback;
 
     this.element.querySelector('form').addEventListener('submit', this.#onFormSubmit);
+  }
+
+  setFormDeleteHandler(callback) {
+    this._callback.formDelete = callback;
+
+    this.element.querySelector('.event__reset-btn').addEventListener('click', this.#onFormDeleteClick);
   }
 
   setFormCloseClickHandler(callback) {
@@ -224,6 +241,12 @@ export default class TripEventEditView extends AbstractStatefulView {
     this._callback.formCloseClick();
   };
 
+  #onFormDeleteClick = (evt) => {
+    evt.preventDefault();
+
+    this._callback.formDelete(TripEventEditView.parseStateToTripEvent(this._state));
+  };
+
   #onEventTypeClick = (evt) => {
     if(evt.target.tagName !== 'INPUT') {
       return;
@@ -240,6 +263,10 @@ export default class TripEventEditView extends AbstractStatefulView {
   };
 
   #onEventPlaceChange = (evt) => {
+    if(!PLACES_NAMES.includes(evt.target.value)) {
+      return;
+    }
+
     evt.preventDefault();
 
     this.updateElement({
@@ -280,7 +307,7 @@ export default class TripEventEditView extends AbstractStatefulView {
     evt.preventDefault();
 
     this._setState({
-      basePrice: evt.target.value,
+      basePrice: Number(evt.target.value.replace(/[^\d]/g, '')),
     });
   };
 

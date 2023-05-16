@@ -37,30 +37,6 @@ const isPast = (date, unit, dateFrom = dayjs()) => dayjs(dateFrom).isAfter(dayjs
 
 const isFuture = (date, unit) => dayjs().isBefore(dayjs(date), unit) || dayjs().isSame(dayjs(date), unit);
 
-const getEarliestEvent = (tripEvents) => {
-  let earliestEvent = tripEvents[0];
-  for(let i = 1; i < tripEvents.length; i++) {
-    if(dayjs(tripEvents[i].dateFrom).diff(dayjs(earliestEvent.dateFrom), 'M') < 0
-      || dayjs(tripEvents[i].dateFrom).diff(dayjs(earliestEvent.dateFrom), 'M') === 0
-      && dayjs(tripEvents[i].dateFrom).diff(dayjs(earliestEvent.dateFrom), 'D') < 0) {
-      earliestEvent = tripEvents[i];
-    }
-  }
-  return earliestEvent;
-};
-
-const getLatestEvent = (tripEvents) => {
-  let latestEvent = tripEvents[0];
-  for(let i = 1; i < tripEvents.length; i++) {
-    if(dayjs(tripEvents[i].dateTo).diff(dayjs(latestEvent.dateTo), 'M') > 0
-      || dayjs(tripEvents[i].dateTo).diff(dayjs(latestEvent.dateTo), 'M') === 0
-      && dayjs(tripEvents[i].dateTo).diff(dayjs(latestEvent.dateTo), 'D') > 0) {
-      latestEvent = tripEvents[i];
-    }
-  }
-  return latestEvent;
-};
-
 const sortByDate = (currentEvent, nextEvent) => {
   const dateFromDifference = dayjs(currentEvent.dateFrom).diff(dayjs(nextEvent.dateFrom));
 
@@ -69,5 +45,6 @@ const sortByDate = (currentEvent, nextEvent) => {
 
 const sortByDuration = (currentEvent, nextEvent) => dayjs(nextEvent.dateTo).diff(dayjs(nextEvent.dateFrom)) - dayjs(currentEvent.dateTo).diff(dayjs(currentEvent.dateFrom));
 
-export {humanizeEventTime, getTimeDifference, generateDate, generateDateTo, isPast, isFuture,
-  getEarliestEvent, getLatestEvent, sortByDate, sortByDuration};
+const areDatesSame = (oldDate, newDate) => dayjs(oldDate).isSame(dayjs(newDate));
+
+export {humanizeEventTime, getTimeDifference, generateDate, generateDateTo, isPast, isFuture, sortByDate, sortByDuration, areDatesSame};

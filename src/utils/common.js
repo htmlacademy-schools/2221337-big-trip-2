@@ -22,6 +22,18 @@ const PointMode = {
   EDITING: 'editing',
 };
 
+const UserAction = {
+  ADD_TRIP_EVENT: 'ADD_TRIP_EVENT',
+  UPDATE_TRIP_EVENT: 'UPDATE_TRIP_EVENT',
+  DELETE_TRIP_EVENT: 'DELETE_TRIP_EVENT',
+};
+
+const UpdateType = {
+  PATCH: 'PATCH',
+  MINOR: 'MINOR',
+  MAJOR: 'MAJOR',
+};
+
 const getRandomIntInclusively = (min, max) => {
   min = Math.ceil(min);
   max = Math.floor(max);
@@ -47,14 +59,5 @@ const shuffle = (array) => {
 
 const isEscapePushed = (evt) => evt.key === 'Escape';
 
-const updateItem = (items, updatedItem) => {
-  const updatedItemIndex = items.findIndex((item) => item.id === updatedItem.id);
-
-  if(updatedItemIndex === -1) {
-    return items;
-  }
-
-  return [...items.slice(0, updatedItemIndex), updatedItem, ...items.slice(updatedItemIndex + 1)];
-};
-
-export {getRandomIntInclusively, uppperFirstSymbol, TYPES, shuffle, isEscapePushed, PointMode, updateItem, DESCRIPTIONS, PLACES_NAMES};
+export {getRandomIntInclusively, uppperFirstSymbol, TYPES, shuffle, isEscapePushed, PointMode,
+  DESCRIPTIONS, PLACES_NAMES, UserAction, UpdateType};

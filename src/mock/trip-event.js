@@ -1,12 +1,13 @@
 import { getRandomIntInclusively, shuffle } from '../utils/common.js';
 import { generateDateTo } from '../utils/trip-event-date.js';
+import { nanoid } from 'nanoid';
 
 const MIN_BASE_PRICE = 1000;
 const MAX_BASE_PRICE = 10000;
 
-const generateTripEvent = (id, type, offersByType, destination, dateFrom) => (
+const generateTripEvent = (type, offersByType, destination, dateFrom) => (
   {
-    id,
+    id: nanoid(),
     basePrice: getRandomIntInclusively(MIN_BASE_PRICE, MAX_BASE_PRICE),
     dateFrom,
     dateTo: generateDateTo(dateFrom),
