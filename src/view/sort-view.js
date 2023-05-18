@@ -2,11 +2,11 @@ import AbstractView from '../framework/view/abstract-view.js';
 import { SortType } from '../utils/sort.js';
 import { uppperFirstSymbol } from '../utils/common.js';
 
-const createSortTemplate = () => (
+const createSortTemplate = (currentSortType) => (
   `<form class="trip-events__trip-sort  trip-sort" action="#" method="get">
     ${Object.values(SortType).map((sortType) => {
     const isDisabled = sortType === SortType.EVENT || sortType === SortType.OFFER ? 'disabled' : '';
-    const isChecked = sortType === SortType.DAY ? 'checked' : '';
+    const isChecked = sortType === currentSortType ? 'checked' : '';
 
     return (
       `<div class="trip-sort__item  trip-sort__item--${sortType}">
@@ -17,8 +17,15 @@ const createSortTemplate = () => (
 );
 
 export default class SortView extends AbstractView {
+  #currentSortType;
+
+  constructor(currentSortType) {
+    super();
+    this.#currentSortType = currentSortType;
+  }
+
   get template() {
-    return createSortTemplate();
+    return createSortTemplate(this.#currentSortType);
   }
 
   setSortTypeChangeHandler(callback) {
@@ -32,6 +39,7 @@ export default class SortView extends AbstractView {
       return;
     }
 
+    evt.preventDefault();
     this._callback.sortTypeChange(evt.target.dataset.sortType);
   };
 }
