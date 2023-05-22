@@ -1,5 +1,6 @@
 import SortView from '../view/sort-view.js';
 import TripEventsListView from '../view/trip-events-list-view.js';
+import LoadingView from '../view/loading-view.js';
 import EmptyTripEventsList from '../view/empty-trip-events-list-view.js';
 import TripEventPresenter from './trip-event-presenter.js';
 import TripEventNewPresenter from './trip-event-new-presenter.js';
@@ -25,6 +26,9 @@ export default class TripEventsBoardPresenter {
   #sortComponent;
   #currentSortType;
 
+  #loadingComponent;
+  #isLoading;
+
   constructor(tripEventsComponent, tripEventsModel, offersModel, destinationModel, filterModel) {
     this.#tripEventsModel = tripEventsModel;
 
@@ -43,8 +47,14 @@ export default class TripEventsBoardPresenter {
     this.#sortComponent = null;
     this.#currentSortType = SortType.DAY;
 
+    this.#loadingComponent = new LoadingView();
+    this.#isLoading = true;
+
     this.#tripEventsModel.addObserver(this.#handleModelEvent);
     this.#filterModel.addObserver(this.#handleModelEvent);
+
+    this.#offersModel.addObserver(this.#handleModelEvent);
+    this.#destinationModel.addObserver(this.#handleModelEvent);
   }
 
   init() {
@@ -63,13 +73,22 @@ export default class TripEventsBoardPresenter {
   }
 
   #renderBoard() {
-    if(this.tripEvents.length === 0){
+    if(this.#isLoading) {
+      this.#renderLoadingMessage();
+      return;
+    }
+
+    if(!this.tripEvents.length) {
       this.#renderNoEventsMessage();
       return;
     }
 
     this.#renderSort();
     this.#renderTripEventsList();
+  }
+
+  #renderLoadingMessage() {
+    render(this.#loadingComponent, this.#tripEventsComponent);
   }
 
   #renderNoEventsMessage() {
@@ -95,7 +114,7 @@ export default class TripEventsBoardPresenter {
   }
 
   #renderTripEvent(tripEvent) {
-    const tripEventPresenter = new TripEventPresenter(this.#tripEventsList.element, this.#offersModel.offersByType, this.#handleViewAction, this.#onTripEventModeChange);
+    const tripEventPresenter = new TripEventPresenter(this.#tripEventsList.element, this.#offersModel.offersByType, this.#destinationModel.destinations, this.#handleViewAction, this.#onTripEventModeChange);
     tripEventPresenter.init(tripEvent);
     this.#tripEventsPresenters.set(tripEvent.id, tripEventPresenter);
   }
@@ -107,6 +126,7 @@ export default class TripEventsBoardPresenter {
     this.#tripEventsPresenters.clear();
 
     remove(this.#sortComponent);
+    remove(this.#loadingComponent);
     remove(this.#noEventsMessage);
 
     if(this.#noEventsMessage) {
@@ -142,6 +162,13 @@ export default class TripEventsBoardPresenter {
       case UpdateType.MAJOR:
         this.#clearBoard(SortType.DAY);
         this.#renderBoard();
+        break;
+      case UpdateType.INIT:
+        if(this.#tripEventsModel.tripEvents.length && this.#offersModel.offersByType.length && this.#destinationModel.destinations.length) {
+          this.#isLoading = false;
+          remove(this.#loadingComponent);
+          this.#renderBoard();
+        }
         break;
     }
   };

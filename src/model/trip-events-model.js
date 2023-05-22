@@ -1,19 +1,25 @@
 import Observable from '../framework/observable.js';
-import { generateTripEvent } from '../mock/trip-event.js';
-import { generateDate } from '../utils/trip-event-date.js';
-import { getRandomIntInclusively, TYPES } from '../utils/common.js';
+import { UpdateType } from '../utils/common.js';
 
 export default class TripEventsModel extends Observable {
-  #tripEvents;
+  #tripEventApiService;
+  #tripEvents = [];
 
-  constructor(eventsCount, offersByType, destinations) {
+  constructor(tripEventApiService) {
     super();
-    this.#tripEvents = Array.from({length: eventsCount},
-      (tripEvent, id) => {
-        const type = TYPES[getRandomIntInclusively(0, TYPES.length - 1)];
-        return generateTripEvent(type, offersByType.length ? offersByType.find((offer) => offer.type === type).offers : [], destinations[id], generateDate());
-      });
+    this.#tripEventApiService = tripEventApiService;
   }
+
+  init = async () => {
+    try {
+      const tripEvents = await this.#tripEventApiService.tripEvents;
+      this.#tripEvents = tripEvents.map(this.#adaptToClient);
+    } catch(err) {
+      this.#tripEvents = [];
+    }
+
+    this._notify(UpdateType.INIT);
+  };
 
   get tripEvents() {
     return this.#tripEvents;
@@ -25,16 +31,23 @@ export default class TripEventsModel extends Observable {
     this._notify(updateType, updatedItem);
   };
 
-  updateTripEvent = (updateType, updatedItem) => {
+  updateTripEvent = async (updateType, updatedItem) => {
     const updatedItemIndex = this.#tripEvents.findIndex((item) => item.id === updatedItem.id);
 
     if(updatedItemIndex === -1) {
       throw new Error('Can\'t update unexisting trip event');
     }
 
-    this.#tripEvents = [...this.#tripEvents.slice(0, updatedItemIndex), updatedItem, ...this.#tripEvents.slice(updatedItemIndex + 1)];
+    try {
+      const response = await this.#tripEventApiService.updateTripEvent(updatedItem);
+      const updatedTripEvent = this.#adaptToClient(response);
 
-    this._notify(updateType, updatedItem);
+      this.#tripEvents = [...this.#tripEvents.slice(0, updatedItemIndex), updatedTripEvent, ...this.#tripEvents.slice(updatedItemIndex + 1)];
+
+      this._notify(updateType, updatedTripEvent);
+    } catch(err) {
+      throw new Error('Can\'t update trip event');
+    }
   };
 
   deleteTripEvent = (updateType, updatedItem) => {
@@ -48,4 +61,20 @@ export default class TripEventsModel extends Observable {
 
     this._notify(updateType);
   };
+
+  #adaptToClient(tripEvent) {
+    const adaptedTripEvent = {...tripEvent,
+      basePrice: tripEvent['base_price'],
+      dateFrom: tripEvent['date_from'],
+      dateTo: tripEvent['date_to'],
+      isFavorite: tripEvent['is_favorite'],
+    };
+
+    delete adaptedTripEvent['base_price'];
+    delete adaptedTripEvent['date_from'];
+    delete adaptedTripEvent['date_to'];
+    delete adaptedTripEvent['is_favorite'];
+
+    return adaptedTripEvent;
+  }
 }
