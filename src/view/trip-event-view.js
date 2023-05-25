@@ -1,13 +1,15 @@
 import AbstractView from '../framework/view/abstract-view.js';
-import { uppperFirstSymbol, PointMode } from '../utils/common.js';
+import { PointMode } from '../utils/common.js';
 import { humanizeEventTime, getTimeDifference } from '../utils/trip-event-date.js';
 
-const createTripEventTemplate = (tripEvent, offersByType) => {
+const createTripEventTemplate = (tripEvent, offersByType, destinations) => {
   const {basePrice, dateFrom, dateTo, destination, isFavorite, offers, type} = tripEvent;
 
   const isFavoriteButtonClass = isFavorite ? 'event__favorite-btn--active' : '';
 
   const timeDifference = getTimeDifference(dateFrom, dateTo);
+
+  const currentDestination = destinations.find((place) => place.id === destination);
 
   const eventOffersByType = offersByType.length && offers.length ? offersByType
     .find((offer) => offer.type === type)
@@ -26,7 +28,7 @@ const createTripEventTemplate = (tripEvent, offersByType) => {
         <div class="event__type">
           <img class="event__type-icon" width="42" height="42" src="img/icons/${type}.png" alt="Event type icon">
         </div>
-        <h3 class="event__title">${uppperFirstSymbol(type)} ${destination.name}</h3>
+        <h3 class="event__title">${type} ${currentDestination.name}</h3>
         <div class="event__schedule">
           <p class="event__time">
             <time class="event__start-time" datetime="${humanizeEventTime(dateFrom, 'YYYY-MM-DD[T]HH:mm')}">${humanizeEventTime(dateFrom, 'HH:mm')}</time>
@@ -58,16 +60,18 @@ const createTripEventTemplate = (tripEvent, offersByType) => {
 export default class TripEventView extends AbstractView {
   #tripEvent;
   #offersByType;
+  #destinations;
 
-  constructor(tripEvent, offersByType) {
+  constructor(tripEvent, offersByType, destinations) {
     super();
     this.#tripEvent = tripEvent;
     this.#offersByType = offersByType;
+    this.#destinations = destinations;
     this.pointMode = PointMode.DEFAULT;
   }
 
   get template() {
-    return createTripEventTemplate(this.#tripEvent, this.#offersByType);
+    return createTripEventTemplate(this.#tripEvent, this.#offersByType, this.#destinations);
   }
 
   setFormOpenClickHandler(callback) {

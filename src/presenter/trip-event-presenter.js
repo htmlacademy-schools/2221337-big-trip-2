@@ -13,14 +13,16 @@ export default class TripEventPresenter {
   #editFormComponent;
 
   #offersByType;
+  #destinations;
 
   #changeData;
   #changePointMode;
 
-  constructor(tripEventsListContainer, offersByType, changeData, changePointMode) {
+  constructor(tripEventsListContainer, offersByType, destinations, changeData, changePointMode) {
     this.#tripEventsListContainer = tripEventsListContainer;
 
     this.#offersByType = offersByType;
+    this.#destinations = destinations;
 
     this.#changeData = changeData;
     this.#changePointMode = changePointMode;
@@ -52,7 +54,7 @@ export default class TripEventPresenter {
     const previousEventComponent = this.#tripEventComponent;
     const previousEditFormComponent = this.#editFormComponent;
 
-    this.#tripEventComponent = new TripEventView(this.#tripEvent, this.#offersByType);
+    this.#tripEventComponent = new TripEventView(this.#tripEvent, this.#offersByType, this.#destinations);
 
     this.#renderEditFormComponent();
 
@@ -77,7 +79,7 @@ export default class TripEventPresenter {
   }
 
   #renderEditFormComponent() {
-    this.#editFormComponent = new TripEventEditView(this.#offersByType, this.#tripEvent);
+    this.#editFormComponent = new TripEventEditView(this.#offersByType, this.#destinations, this.#tripEvent);
 
     this.#editFormComponent.setFormSubmitHandler(this.#onFormSubmit);
     this.#editFormComponent.setFormCloseClickHandler(this.#onFormCloseButtonClick);

@@ -1,13 +1,11 @@
+import dayjs from 'dayjs';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
-import { uppperFirstSymbol, shuffle, getRandomIntInclusively, DESCRIPTIONS, PLACES_NAMES, TYPES } from '../utils/common.js';
+import { TYPES } from '../utils/common.js';
 import { humanizeEventTime, isPast } from '../utils/trip-event-date.js';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 
-const MAX_SENTENCES = 5;
-
-const MAX_PHOTO_INDEX = 100;
-const MAX_PHOTO_COUNT = 5;
+const upperFirstSymbol = (word) => word.charAt(0).toUpperCase() + word.slice(1);
 
 const createTripEventOffersTemplate = (tripEvent, offersByType) => {
   const {offers} = tripEvent;
@@ -43,15 +41,15 @@ const createTripEventOffersTemplate = (tripEvent, offersByType) => {
   return '<section class="event__section  event__section--offers"></section>';
 };
 
-const createTripEventDestinationsTemplate = (tripEvent) => {
-  if(tripEvent.destination.description.length || tripEvent.destination.pictures.length) {
-    const pictures = tripEvent.destination.pictures.map((picture) =>
+const createTripEventDestinationsTemplate = (destination) => {
+  if(destination.description.length || destination.pictures.length) {
+    const pictures = destination.pictures.map((picture) =>
       `<img class="event__photo" src="${picture.src}" alt="${picture.description}">`).join('');
 
     return(
       `<section class="event__section  event__section--destination">
         <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-        <p class="event__destination-description">${tripEvent.destination.description}</p>
+        <p class="event__destination-description">${destination.description}</p>
 
         <div class="event__photos-container">
           <div class="event__photos-tape">
@@ -69,12 +67,12 @@ const createEventTypeFields = (currentType) => (
     const isChecked = eventType === currentType ? 'checked' : '';
     return (`<div class="event__type-item">
                   <input id="event-type-${eventType}-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${eventType}" ${isChecked}>
-                  <label class="event__type-label  event__type-label--${eventType}" for="event-type-${eventType}-1">${uppperFirstSymbol(eventType)}</label>
+                  <label class="event__type-label  event__type-label--${eventType}" for="event-type-${eventType}-1">${upperFirstSymbol(eventType)}</label>
                 </div>`);
   }).join('')
 );
 
-const createTripEventEditTemplate = (tripEvent, offersByType, isNewEvent) => {
+const createTripEventEditTemplate = (tripEvent, offersByType, destinations, destinationsNames,isNewEvent) => {
   const {basePrice, dateFrom, dateTo, destination, type} = tripEvent;
 
   const price = isNewEvent && basePrice === 0 ? '' : basePrice;
@@ -82,6 +80,8 @@ const createTripEventEditTemplate = (tripEvent, offersByType, isNewEvent) => {
     `<button class="event__rollup-btn" type="button">
       <span class="visually-hidden">Open event</span>
     </button>`;
+
+  const currentDestination = destinations.find((place) => place.id === destination);
 
   return (
     `<li class="trip-events__item">
@@ -104,11 +104,11 @@ const createTripEventEditTemplate = (tripEvent, offersByType, isNewEvent) => {
 
           <div class="event__field-group  event__field-group--destination">
             <label class="event__label  event__type-output" for="event-destination-1">
-              ${uppperFirstSymbol(type)}
+              ${type}
             </label>
-            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destination.name}" list="destination-list-1">
+            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${currentDestination.name}" list="destination-list-1">
             <datalist id="destination-list-1">
-              ${Array.from(PLACES_NAMES, (place) => `<option value="${place}"></option>`).join('')}
+              ${Array.from(destinationsNames, (place) => `<option value="${place}"></option>`).join('')}
             </datalist>
           </div>
 
@@ -134,7 +134,7 @@ const createTripEventEditTemplate = (tripEvent, offersByType, isNewEvent) => {
         </header>
         <section class="event__details">
           ${createTripEventOffersTemplate(tripEvent, offersByType)}
-          ${createTripEventDestinationsTemplate(tripEvent)}
+          ${createTripEventDestinationsTemplate(currentDestination)}
         </section>
       </form>
     </li>`
@@ -145,17 +145,23 @@ export default class TripEventEditView extends AbstractStatefulView {
   #offersByType;
   #offersByCurrentType;
 
+  #destinations;
+  #destinationsNames;
+
   #dateFromPicker;
   #dateToPicker;
 
   #isNewEvent;
 
-  constructor(offersByType, tripEvent, isNewEvent = false) {
+  constructor(offersByType, destinations, tripEvent, isNewEvent = false) {
     super();
     this._state = TripEventEditView.parseTripEventToState(tripEvent);
 
     this.#offersByType = offersByType;
     this.#offersByCurrentType = this.#offersByType.length ? this.#offersByType.find((offer) => offer.type === tripEvent.type).offers : [];
+
+    this.#destinations = destinations;
+    this.#destinationsNames = Array.from(this.#destinations, (destination) => destination.name);
 
     this.#dateFromPicker = null;
     this.#dateToPicker = null;
@@ -169,7 +175,7 @@ export default class TripEventEditView extends AbstractStatefulView {
   }
 
   get template() {
-    return createTripEventEditTemplate(this._state, this.#offersByCurrentType, this.#isNewEvent);
+    return createTripEventEditTemplate(this._state, this.#offersByCurrentType, this.#destinations, this.#destinationsNames, this.#isNewEvent);
   }
 
   _restoreHandlers = () => {
@@ -258,28 +264,18 @@ export default class TripEventEditView extends AbstractStatefulView {
 
     this.updateElement({
       type: evt.target.value,
-      offers: this.#offersByCurrentType.length ? shuffle(Array.from(this.#offersByCurrentType, (offer) => offer.id)).slice(0, getRandomIntInclusively(1, this.#offersByCurrentType.length)) : [],
     });
   };
 
   #onEventPlaceChange = (evt) => {
-    if(!PLACES_NAMES.includes(evt.target.value)) {
+    if(!this.#destinationsNames.includes(evt.target.value)) {
       return;
     }
 
     evt.preventDefault();
 
     this.updateElement({
-      destination: {...this._state.destination,
-        description: shuffle(DESCRIPTIONS).slice(0, getRandomIntInclusively(0, MAX_SENTENCES)).join(' '),
-        name: evt.target.value,
-        pictures: Array.from({length: getRandomIntInclusively(0, MAX_PHOTO_COUNT)}, () => (
-          {
-            src: `http://picsum.photos/248/152?r=${getRandomIntInclusively(1, MAX_PHOTO_INDEX)}`,
-            description: DESCRIPTIONS[getRandomIntInclusively(0, DESCRIPTIONS.length - 1)],
-          }
-        )),
-      }
+      destination: this.#destinations.find((place) => place.name === evt.target.value).id,
     });
   };
 
@@ -342,6 +338,7 @@ export default class TripEventEditView extends AbstractStatefulView {
         enableTime: true,
         dateFormat: 'd/m/y H:i',
         defaultDate: this._state.dateFrom,
+        minDate: dayjs().toString(),
         minuteIncrement: 1,
         onChange: this.#onDateFromChange,
       });

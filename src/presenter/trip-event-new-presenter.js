@@ -4,6 +4,17 @@ import { isEscapePushed, UpdateType, UserAction, TYPES } from '../utils/common.j
 import { nanoid } from 'nanoid';
 import dayjs from 'dayjs';
 
+const DEFAULT_TRIP_EVENT = {
+  id: 0,
+  basePrice: 0,
+  dateFrom: dayjs().toString(),
+  dateTo: dayjs().toString(),
+  destination: 0,
+  isFavorite: false,
+  offers: [],
+  type: TYPES[0],
+};
+
 export default class TripEventNewPresenter {
   #tripEventsListContainer;
   #addFormComponent = null;
@@ -42,25 +53,12 @@ export default class TripEventNewPresenter {
     document.removeEventListener('keydown', this.#onEscapeKeyDown);
   }
 
-  #getDefaultTripEvent() {
-    return {
-      id: 0,
-      basePrice: 0,
-      dateFrom: dayjs().toString(),
-      dateTo: dayjs().toString(),
-      destination: this.#destinations[0],
-      isFavorite: false,
-      offers: [],
-      type: TYPES[0],
-    };
-  }
-
   #renderAddFormComponent() {
     if(this.#addFormComponent !== null) {
       return;
     }
 
-    this.#addFormComponent = new TripEventEditView(this.#offersByType, this.#getDefaultTripEvent(), true);
+    this.#addFormComponent = new TripEventEditView(this.#offersByType, this.#destinations, DEFAULT_TRIP_EVENT, true);
 
     this.#addFormComponent.setFormSubmitHandler(this.#onFormSubmit);
     this.#addFormComponent.setFormDeleteHandler(this.#onCancelButtonClick);
