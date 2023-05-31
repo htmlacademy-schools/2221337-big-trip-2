@@ -10,7 +10,7 @@ export default class TripEventsModel extends Observable {
     this.#tripEventApiService = tripEventApiService;
   }
 
-  init = async () => {
+  async init () {
     try {
       const tripEvents = await this.#tripEventApiService.tripEvents;
       this.#tripEvents = tripEvents.map(this.#adaptToClient);
@@ -19,19 +19,26 @@ export default class TripEventsModel extends Observable {
     }
 
     this._notify(UpdateType.INIT);
-  };
+  }
 
   get tripEvents() {
     return this.#tripEvents;
   }
 
-  addTripEvent = (updateType, updatedItem) => {
-    this.#tripEvents = [updatedItem, ...this.#tripEvents];
+  async addTripEvent(updateType, newItem) {
+    try {
+      const response = await this.#tripEventApiService.createTripEvent(newItem);
+      const newTripEvent = this.#adaptToClient(response);
 
-    this._notify(updateType, updatedItem);
-  };
+      this.#tripEvents = [newTripEvent, ...this.#tripEvents];
 
-  updateTripEvent = async (updateType, updatedItem) => {
+      this._notify(updateType, newItem);
+    } catch(err) {
+      throw new Error('Can\'t add trip event');
+    }
+  }
+
+  async updateTripEvent(updateType, updatedItem) {
     const updatedItemIndex = this.#tripEvents.findIndex((item) => item.id === updatedItem.id);
 
     if(updatedItemIndex === -1) {
@@ -48,19 +55,24 @@ export default class TripEventsModel extends Observable {
     } catch(err) {
       throw new Error('Can\'t update trip event');
     }
-  };
+  }
 
-  deleteTripEvent = (updateType, updatedItem) => {
-    const updatedItemIndex = this.#tripEvents.findIndex((item) => item.id === updatedItem.id);
+  async deleteTripEvent(updateType, deletingItem) {
+    const updatedItemIndex = this.#tripEvents.findIndex((item) => item.id === deletingItem.id);
 
     if(updatedItemIndex === -1) {
       throw new Error('Can\'t delete unexisting trip event');
     }
 
-    this.#tripEvents = [...this.#tripEvents.slice(0, updatedItemIndex), ...this.#tripEvents.slice(updatedItemIndex + 1)];
+    try {
+      await this.#tripEventApiService.deleteTripEvent(deletingItem);
+      this.#tripEvents = [...this.#tripEvents.slice(0, updatedItemIndex), ...this.#tripEvents.slice(updatedItemIndex + 1)];
 
-    this._notify(updateType);
-  };
+      this._notify(updateType);
+    } catch(err) {
+      throw new Error('Can\'t delete trip event');
+    }
+  }
 
   #adaptToClient(tripEvent) {
     const adaptedTripEvent = {...tripEvent,

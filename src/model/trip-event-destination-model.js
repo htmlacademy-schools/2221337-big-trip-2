@@ -1,26 +1,29 @@
 import Observable from '../framework/observable.js';
-import { UpdateType } from '../utils/common.js';
 
 export default class TripEventDestinationModel extends Observable {
   #tripEventApiService;
   #destinations = [];
+  #destinationNames;
 
   constructor(tripEventApiService) {
     super();
     this.#tripEventApiService = tripEventApiService;
   }
 
-  init = async () => {
+  async init() {
     try {
       this.#destinations = await this.#tripEventApiService.destinations;
+      this.#destinationNames = Array.from(this.#destinations, (destination) => destination.name);
     } catch(err) {
       this.#destinations = [];
     }
-
-    this._notify(UpdateType.INIT);
-  };
+  }
 
   get destinations() {
     return this.#destinations;
+  }
+
+  get destinationNames() {
+    return this.#destinationNames;
   }
 }

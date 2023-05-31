@@ -7,7 +7,7 @@ import 'flatpickr/dist/flatpickr.min.css';
 
 const upperFirstSymbol = (word) => word.charAt(0).toUpperCase() + word.slice(1);
 
-const createTripEventOffersTemplate = (tripEvent, offersByType) => {
+const createTripEventOffersTemplate = (tripEvent, offersByType, disabledTag) => {
   const {offers} = tripEvent;
 
   if(offersByType.length) {
@@ -18,7 +18,7 @@ const createTripEventOffersTemplate = (tripEvent, offersByType) => {
 
       return (
         `<div class="event__offer-selector">
-          <input class="event__offer-checkbox  visually-hidden" id="event-offer-${titleClass}-1" data-offer-title="${offer.title}" type="checkbox" name="event-offer-${titleClass}" ${checked}>
+          <input class="event__offer-checkbox  visually-hidden" id="event-offer-${titleClass}-1" data-offer-title="${offer.title}" type="checkbox" name="event-offer-${titleClass}" ${checked} ${disabledTag}>
           <label class="event__offer-label" for="event-offer-${titleClass}-1">
             <span class="event__offer-title">${offer.title}</span>
             &plus;&euro;&nbsp;
@@ -73,15 +73,17 @@ const createEventTypeFields = (currentType) => (
 );
 
 const createTripEventEditTemplate = (tripEvent, offersByType, destinations, destinationsNames,isNewEvent) => {
-  const {basePrice, dateFrom, dateTo, destination, type} = tripEvent;
+  const {basePrice, dateFrom, dateTo, destination, type, isSaving, isDeleting, isDisabled} = tripEvent;
 
-  const price = isNewEvent && basePrice === 0 ? '' : basePrice;
   const rollUpButton = isNewEvent ? '' :
     `<button class="event__rollup-btn" type="button">
       <span class="visually-hidden">Open event</span>
     </button>`;
 
   const currentDestination = destinations.find((place) => place.id === destination);
+
+  const disabledTag = isDisabled ? 'disabled' : '';
+  const deleteMessage = isDeleting ? 'Deleting...' : 'Delete';
 
   return (
     `<li class="trip-events__item">
@@ -92,7 +94,7 @@ const createTripEventEditTemplate = (tripEvent, offersByType, destinations, dest
               <span class="visually-hidden">Choose event type</span>
               <img class="event__type-icon" width="17" height="17" src="img/icons/${type}.png" alt="Event type icon">
             </label>
-            <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox">
+            <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox" ${disabledTag}>
 
             <div class="event__type-list">
               <fieldset class="event__type-group">
@@ -106,7 +108,7 @@ const createTripEventEditTemplate = (tripEvent, offersByType, destinations, dest
             <label class="event__label  event__type-output" for="event-destination-1">
               ${type}
             </label>
-            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${currentDestination.name}" list="destination-list-1">
+            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${currentDestination.name}" list="destination-list-1" ${disabledTag}>
             <datalist id="destination-list-1">
               ${Array.from(destinationsNames, (place) => `<option value="${place}"></option>`).join('')}
             </datalist>
@@ -114,10 +116,10 @@ const createTripEventEditTemplate = (tripEvent, offersByType, destinations, dest
 
           <div class="event__field-group  event__field-group--time">
             <label class="visually-hidden" for="event-start-time-1">From</label>
-            <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${humanizeEventTime(dateFrom, 'DD/MM/YY HH:mm')}">
+            <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${humanizeEventTime(dateFrom, 'DD/MM/YY HH:mm')}" ${disabledTag}>
             &mdash;
             <label class="visually-hidden" for="event-end-time-1">To</label>
-            <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${humanizeEventTime(dateTo, 'DD/MM/YY HH:mm')}">
+            <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${humanizeEventTime(dateTo, 'DD/MM/YY HH:mm')}" ${disabledTag}>
           </div>
 
           <div class="event__field-group  event__field-group--price">
@@ -125,15 +127,15 @@ const createTripEventEditTemplate = (tripEvent, offersByType, destinations, dest
               <span class="visually-hidden">Price</span>
               &euro;
             </label>
-            <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${price}">
+            <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${basePrice}" ${disabledTag}>
           </div>
 
-          <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
-          <button class="event__reset-btn" type="reset">${isNewEvent ? 'Cancel' : 'Delete'}</button>
+          <button class="event__save-btn  btn  btn--blue" type="submit" ${disabledTag}>${isSaving ? 'Saving...' : 'Save'}</button>
+          <button class="event__reset-btn" type="reset" ${disabledTag}>${isNewEvent ? 'Cancel' : deleteMessage}</button>
           ${rollUpButton}
         </header>
         <section class="event__details">
-          ${createTripEventOffersTemplate(tripEvent, offersByType)}
+          ${createTripEventOffersTemplate(tripEvent, offersByType, disabledTag)}
           ${createTripEventDestinationsTemplate(currentDestination)}
         </section>
       </form>
@@ -153,7 +155,7 @@ export default class TripEventEditView extends AbstractStatefulView {
 
   #isNewEvent;
 
-  constructor(offersByType, destinations, tripEvent, isNewEvent = false) {
+  constructor(offersByType, destinations, destinationsNames, tripEvent, isNewEvent = false) {
     super();
     this._state = TripEventEditView.parseTripEventToState(tripEvent);
 
@@ -161,7 +163,7 @@ export default class TripEventEditView extends AbstractStatefulView {
     this.#offersByCurrentType = this.#offersByType.length ? this.#offersByType.find((offer) => offer.type === tripEvent.type).offers : [];
 
     this.#destinations = destinations;
-    this.#destinationsNames = Array.from(this.#destinations, (destination) => destination.name);
+    this.#destinationsNames = destinationsNames;
 
     this.#dateFromPicker = null;
     this.#dateToPicker = null;
@@ -178,20 +180,7 @@ export default class TripEventEditView extends AbstractStatefulView {
     return createTripEventEditTemplate(this._state, this.#offersByCurrentType, this.#destinations, this.#destinationsNames, this.#isNewEvent);
   }
 
-  _restoreHandlers = () => {
-    this.#setInnerHandlers();
-
-    this.#setDateFromPicker();
-    this.#setDateToPicker();
-
-    this.setFormSubmitHandler(this._callback.formSubmit);
-    if(!this.#isNewEvent) {
-      this.setFormCloseClickHandler(this._callback.formCloseClick);
-    }
-    this.setFormDeleteHandler(this._callback.formDelete);
-  };
-
-  removeElement = () => {
+  removeElement() {
     super.removeElement();
 
     if(this.#dateFromPicker && this.#dateToPicker) {
@@ -201,7 +190,7 @@ export default class TripEventEditView extends AbstractStatefulView {
       this.#dateFromPicker = null;
       this.#dateToPicker = null;
     }
-  };
+  }
 
   setFormSubmitHandler(callback) {
     this._callback.formSubmit = callback;
@@ -231,8 +220,59 @@ export default class TripEventEditView extends AbstractStatefulView {
     this.updateElement(TripEventEditView.parseTripEventToState(tripEvent));
   }
 
+  _restoreHandlers() {
+    this.#setInnerHandlers();
+
+    this.#setDateFromPicker();
+    this.#setDateToPicker();
+
+    this.setFormSubmitHandler(this._callback.formSubmit);
+    if(!this.#isNewEvent) {
+      this.setFormCloseClickHandler(this._callback.formCloseClick);
+    }
+    this.setFormDeleteHandler(this._callback.formDelete);
+  }
+
   #updateOffersByCurrentType(newType) {
     this.#offersByCurrentType = this.#offersByType.length ? this.#offersByType.find((offer) => offer.type === newType).offers : [];
+  }
+
+  #setInnerHandlers() {
+    this.element.querySelector('.event__type-group').addEventListener('click', this.#onEventTypeClick);
+    this.element.querySelector('#event-destination-1').addEventListener('change', this.#onEventPlaceChange);
+
+    if(this.#offersByType.length && this.#offersByCurrentType.length) {
+      this.element.querySelector('.event__available-offers').addEventListener('click', this.#onOfferClick);
+    }
+
+    this.element.querySelector('#event-price-1').addEventListener('input', this.#onPriceInput);
+  }
+
+  #setDateFromPicker() {
+    this.#dateFromPicker = flatpickr(
+      this.element.querySelector('#event-start-time-1'),
+      {
+        enableTime: true,
+        dateFormat: 'd/m/y H:i',
+        defaultDate: this._state.dateFrom,
+        minDate: dayjs().toString(),
+        minuteIncrement: 1,
+        onChange: this.#onDateFromChange,
+      });
+  }
+
+  #setDateToPicker() {
+    this.#dateToPicker = flatpickr(
+      this.element.querySelector('#event-end-time-1'),
+      {
+        enableTime: true,
+        dateFormat: 'd/m/y H:i',
+        defaultDate: this._state.dateTo,
+        minDate: this._state.dateFrom,
+        minuteIncrement: 1,
+        onChange: this.#onDateToChange,
+      }
+    );
   }
 
   #onFormSubmit = (evt) => {
@@ -320,45 +360,21 @@ export default class TripEventEditView extends AbstractStatefulView {
     });
   };
 
-  #setInnerHandlers = () => {
-    this.element.querySelector('.event__type-group').addEventListener('click', this.#onEventTypeClick);
-    this.element.querySelector('#event-destination-1').addEventListener('change', this.#onEventPlaceChange);
+  static parseTripEventToState(tripEvent) {
+    return {...tripEvent,
+      isSaving: false,
+      isDeleting: false,
+      isDisabled: false,
+    };
+  }
 
-    if(this.#offersByType.length && this.#offersByCurrentType.length) {
-      this.element.querySelector('.event__available-offers').addEventListener('click', this.#onOfferClick);
-    }
+  static parseStateToTripEvent(state) {
+    const tripEvent = {...state};
 
-    this.element.querySelector('#event-price-1').addEventListener('input', this.#onPriceInput);
-  };
+    delete tripEvent.isSaving;
+    delete tripEvent.isDeleting;
+    delete tripEvent.isDisabled;
 
-  #setDateFromPicker = () => {
-    this.#dateFromPicker = flatpickr(
-      this.element.querySelector('#event-start-time-1'),
-      {
-        enableTime: true,
-        dateFormat: 'd/m/y H:i',
-        defaultDate: this._state.dateFrom,
-        minDate: dayjs().toString(),
-        minuteIncrement: 1,
-        onChange: this.#onDateFromChange,
-      });
-  };
-
-  #setDateToPicker = () => {
-    this.#dateToPicker = flatpickr(
-      this.element.querySelector('#event-end-time-1'),
-      {
-        enableTime: true,
-        dateFormat: 'd/m/y H:i',
-        defaultDate: this._state.dateTo,
-        minDate: this._state.dateFrom,
-        minuteIncrement: 1,
-        onChange: this.#onDateToChange,
-      }
-    );
-  };
-
-  static parseTripEventToState = (tripEvent) => ({...tripEvent});
-
-  static parseStateToTripEvent = (state) => ({...state});
+    return tripEvent;
+  }
 }

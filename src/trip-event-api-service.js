@@ -3,6 +3,8 @@ import ApiService from './framework/api-service.js';
 const Method = {
   GET: 'GET',
   PUT: 'PUT',
+  POST: 'POST',
+  DELETE: 'DELETE',
 };
 
 export default class TripEventApiService extends ApiService {
@@ -18,7 +20,7 @@ export default class TripEventApiService extends ApiService {
     return this._load({url: 'destinations'}).then(ApiService.parseResponse);
   }
 
-  updateTripEvent = async (tripEvent) => {
+  async updateTripEvent(tripEvent) {
     const response = await this._load({
       url: `points/${tripEvent.id}`,
       method: Method.PUT,
@@ -28,7 +30,28 @@ export default class TripEventApiService extends ApiService {
 
     const parsedResponce = await ApiService.parseResponse(response);
     return parsedResponce;
-  };
+  }
+
+  async createTripEvent(tripEvent) {
+    const response = await this._load({
+      url: 'points',
+      method: Method.POST,
+      body: JSON.stringify(this.#adaptToServer(tripEvent)),
+      headers: new Headers({'Content-Type': 'application/json'})
+    });
+
+    const parsedResponce = await ApiService.parseResponse(response);
+    return parsedResponce;
+  }
+
+  async deleteTripEvent(tripEvent) {
+    const response = await this._load({
+      url: `points/${tripEvent.id}`,
+      method: Method.DELETE,
+    });
+
+    return response;
+  }
 
   #adaptToServer(tripEvent) {
     const adaptedTripEvent = {...tripEvent,
