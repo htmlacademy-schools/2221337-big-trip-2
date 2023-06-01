@@ -14,15 +14,17 @@ export default class TripEventPresenter {
 
   #offersByType;
   #destinations;
+  #detinationNames;
 
   #changeData;
   #changePointMode;
 
-  constructor(tripEventsListContainer, offersByType, destinations, changeData, changePointMode) {
+  constructor(tripEventsListContainer, offersByType, destinations, destinationNames, changeData, changePointMode) {
     this.#tripEventsListContainer = tripEventsListContainer;
 
     this.#offersByType = offersByType;
     this.#destinations = destinations;
+    this.#detinationNames = destinationNames;
 
     this.#changeData = changeData;
     this.#changePointMode = changePointMode;
@@ -50,11 +52,48 @@ export default class TripEventPresenter {
     remove(this.#editFormComponent);
   }
 
+  setSaving() {
+    if(this.#pointMode === PointMode.EDITING) {
+      this.#editFormComponent.updateElement({
+        isSaving: true,
+        isDisabled: true,
+      });
+    }
+  }
+
+  setDeleting() {
+    if(this.#pointMode === PointMode.EDITING) {
+      this.#editFormComponent.updateElement({
+        isDeleting: true,
+        isDisabled: true,
+      });
+    }
+  }
+
+  setAborting() {
+    if(this.#pointMode === PointMode.EDITING) {
+      this.#editFormComponent.shake();
+      return;
+    }
+
+    const resetEditFormState = () => {
+      this.#editFormComponent.updateElement({
+        isSaving: false,
+        isDeleting: false,
+        isDisabled: false,
+      });
+    };
+
+    this.#editFormComponent.shake(resetEditFormState);
+  }
+
   #renderTripEventComponent() {
     const previousEventComponent = this.#tripEventComponent;
     const previousEditFormComponent = this.#editFormComponent;
 
-    this.#tripEventComponent = new TripEventView(this.#tripEvent, this.#offersByType, this.#destinations);
+    this.#tripEventComponent = new TripEventView(this.#tripEvent,
+      this.#offersByType.length ? this.#offersByType.find((offer) => offer.type === this.#tripEvent.type).offers : [],
+      this.#destinations.find((place) => place.id === this.#tripEvent.destination));
 
     this.#renderEditFormComponent();
 
@@ -71,7 +110,8 @@ export default class TripEventPresenter {
     }
 
     if(this.#pointMode === PointMode.EDITING) {
-      replace(this.#editFormComponent, previousEditFormComponent);
+      replace(this.#tripEventComponent, previousEditFormComponent);
+      this.#pointMode = PointMode.DEFAULT;
     }
 
     remove(previousEventComponent);
@@ -79,7 +119,7 @@ export default class TripEventPresenter {
   }
 
   #renderEditFormComponent() {
-    this.#editFormComponent = new TripEventEditView(this.#offersByType, this.#destinations, this.#tripEvent);
+    this.#editFormComponent = new TripEventEditView(this.#offersByType, this.#destinations, this.#detinationNames, this.#tripEvent);
 
     this.#editFormComponent.setFormSubmitHandler(this.#onFormSubmit);
     this.#editFormComponent.setFormCloseClickHandler(this.#onFormCloseButtonClick);
@@ -117,7 +157,6 @@ export default class TripEventPresenter {
       || !areDatesSame(this.#tripEvent.dateTo, tripEvent.dateTo)
       || this.#tripEvent.basePrice !== tripEvent.basePrice;
     this.#changeData(UserAction.UPDATE_TRIP_EVENT, isMinorUpdate ? UpdateType.MINOR : UpdateType.PATCH, tripEvent);
-    this.#replaceFormToPoint();
   };
 
   #onEscapeKeyDown = (evt) => {

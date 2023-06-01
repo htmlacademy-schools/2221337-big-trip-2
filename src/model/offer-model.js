@@ -1,5 +1,4 @@
 import Observable from '../framework/observable.js';
-import { UpdateType } from '../utils/common.js';
 
 export default class OfferByTypeModel extends Observable {
   #tripEventApiService;
@@ -10,15 +9,13 @@ export default class OfferByTypeModel extends Observable {
     this.#tripEventApiService = tripEventApiService;
   }
 
-  init = async () => {
+  async init() {
     try {
       this.#offersByType = await this.#tripEventApiService.offersByType;
     } catch(err) {
       this.#offersByType = [];
     }
-
-    this._notify(UpdateType.INIT);
-  };
+  }
 
   get offersByType() {
     return this.#offersByType;
