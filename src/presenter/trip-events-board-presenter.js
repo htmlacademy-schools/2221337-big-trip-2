@@ -61,11 +61,11 @@ export default class TripEventsBoardPresenter {
     this.#errorMessageComponent = new ErrorMessageView();
     this.#uiBlocker = new UiBlocker(TimeLimit.MIN_LIMIT, TimeLimit.MAX_LIMIT);
 
-    this.#tripEventsModel.addObserver(this.#handleModelEvent);
-    this.#filterModel.addObserver(this.#handleModelEvent);
+    this.#tripEventsModel.addObserver(this.#onModelDataChange);
+    this.#filterModel.addObserver(this.#onModelDataChange);
 
-    this.#offersModel.addObserver(this.#handleModelEvent);
-    this.#destinationModel.addObserver(this.#handleModelEvent);
+    this.#offersModel.addObserver(this.#onModelDataChange);
+    this.#destinationModel.addObserver(this.#onModelDataChange);
   }
 
   init() {
@@ -188,7 +188,7 @@ export default class TripEventsBoardPresenter {
     this.#uiBlocker.unblock();
   };
 
-  #handleModelEvent = (updateType, updatedItem) => {
+  #onModelDataChange = (updateType, updatedItem) => {
     switch(updateType) {
       case UpdateType.PATCH:
         this.#tripEventsPresenters.get(updatedItem.id).init(updatedItem);
