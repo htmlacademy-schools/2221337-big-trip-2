@@ -1,8 +1,8 @@
 import AbstractView from '../framework/view/abstract-view.js';
 import {humanizeEventTime } from '../utils/trip-event-date.js';
 
-const MIDDLE_SHORT_EVENTS_COUNT = 2;
-const MAX_SHORT_EVENTS_COUNT = 3;
+const TWO_TITLE_EVENTS_COUNT = 2;
+const THREE_TITLE_EVENTS_COUNT = 3;
 
 const getTripTitle = (tripEvents, destinations) => {
   const firstDestinationName = destinations.find((place) => place.id === tripEvents[0].destination).name;
@@ -11,10 +11,10 @@ const getTripTitle = (tripEvents, destinations) => {
     case 1:
       return firstDestinationName;
 
-    case MIDDLE_SHORT_EVENTS_COUNT:
+    case TWO_TITLE_EVENTS_COUNT:
       return `${firstDestinationName} &mdash; ${lastDestinationName}`;
 
-    case MAX_SHORT_EVENTS_COUNT:
+    case THREE_TITLE_EVENTS_COUNT:
       return `${firstDestinationName} &mdash; ${destinations.find((place) => place.id === tripEvents[1].destination).name} &mdash; ${lastDestinationName}`;
 
     default:

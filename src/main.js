@@ -20,11 +20,12 @@ const tripEventApiService = new TripEventApiService(END_POINT, AUTHORIZTION_TOKE
 const offerByTypeModel = new OfferByTypeModel(tripEventApiService);
 const destinationModel = new TripEventDestinationModel(tripEventApiService);
 const tripEventModel = new TripEventsModel(tripEventApiService);
-
 const filterModel = new FilterModel();
 
-const tripEventsPresenter = new TripEventsBoardPresenter(tripEventsComponent, tripEventModel, offerByTypeModel, destinationModel, filterModel);
-const filterPresenter = new FilterPresenter(filterContainer, tripMainContainer, filterModel, tripEventModel, offerByTypeModel, destinationModel);
+const tripEventsPresenter = new TripEventsBoardPresenter(tripEventsComponent, tripEventModel,
+  offerByTypeModel, destinationModel, filterModel);
+const filterPresenter = new FilterPresenter(filterContainer, tripMainContainer, filterModel,
+  tripEventModel, offerByTypeModel, destinationModel);
 
 const onAddFormClose = () => {
   newEventButton.disabled = false;

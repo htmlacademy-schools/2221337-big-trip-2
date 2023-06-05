@@ -108,7 +108,7 @@ const createTripEventEditTemplate = (tripEvent, offersByType, destinations, dest
             <label class="event__label  event__type-output" for="event-destination-1">
               ${type}
             </label>
-            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${currentDestination.name}" list="destination-list-1" ${disabledTag}>
+            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${currentDestination.name}" list="destination-list-1" autocomplete="off" ${disabledTag}>
             <datalist id="destination-list-1">
               ${Array.from(destinationsNames, (place) => `<option value="${place}"></option>`).join('')}
             </datalist>
@@ -343,7 +343,7 @@ export default class TripEventEditView extends AbstractStatefulView {
     evt.preventDefault();
 
     this._setState({
-      basePrice: Number(evt.target.value.replace(/[^\d]/g, '')),
+      basePrice: Math.abs(Number(evt.target.value.replace(/[^\d]/g, ''))),
     });
   };
 
