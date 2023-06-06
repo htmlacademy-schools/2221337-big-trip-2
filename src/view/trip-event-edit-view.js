@@ -342,8 +342,9 @@ export default class TripEventEditView extends AbstractStatefulView {
   #onPriceInput = (evt) => {
     evt.preventDefault();
 
+    const newPrice = Math.abs(Number(evt.target.value.replace(/[^\d]/g, '')));
     this._setState({
-      basePrice: Math.abs(Number(evt.target.value.replace(/[^\d]/g, ''))),
+      basePrice: newPrice === 0 ? 1 : newPrice,
     });
   };
 

@@ -80,7 +80,7 @@ export default class TripEventNewPresenter {
 
   #generateDefaultTripEvent() {
     return {
-      basePrice: 0,
+      basePrice: 1,
       dateFrom: dayjs().toString(),
       dateTo: dayjs().toString(),
       destination: this.#destinations[0].id,
